@@ -22,7 +22,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.crashlytics.android.Crashlytics;
 
 import org.gnucash.android.app.GnuCashApplication;
 import org.gnucash.android.model.Commodity;
@@ -284,17 +283,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             } catch (NoSuchMethodException e) {
                 String msg = String.format("Database upgrade method upgradeToVersion%d(SQLiteDatabase) definition not found ", newVersion);
                 Log.e(LOG_TAG, msg, e);
-                Crashlytics.log(msg);
-                Crashlytics.logException(e);
+//                Crashlytics.log(msg);
+//                Crashlytics.logException(e);
                 throw new RuntimeException(e);
             }  catch (IllegalAccessException e) {
                 String msg = String.format("Database upgrade to version %d failed. The upgrade method is inaccessible ", newVersion);
                 Log.e(LOG_TAG, msg, e);
-                Crashlytics.log(msg);
-                Crashlytics.logException(e);
+//                Crashlytics.log(msg);
+//                Crashlytics.logException(e);
                 throw new RuntimeException(e);
             } catch (InvocationTargetException e){
-                Crashlytics.logException(e.getTargetException());
+//                Crashlytics.logException(e.getTargetException());
                 throw new RuntimeException(e.getTargetException());
             }
         }

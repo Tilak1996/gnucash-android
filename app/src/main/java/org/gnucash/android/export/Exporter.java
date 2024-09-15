@@ -23,8 +23,6 @@ import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.crashlytics.android.Crashlytics;
-
 import org.gnucash.android.BuildConfig;
 import org.gnucash.android.app.GnuCashApplication;
 import org.gnucash.android.db.DatabaseSchema;
@@ -182,7 +180,7 @@ public abstract class Exporter {
             timeMillis = date.getTime();
         } catch (ParseException e) {
             Log.e("Exporter", "Error parsing time from file name: " + e.getMessage());
-            Crashlytics.logException(e);
+//            Crashlytics.logException(e);
         }
         return timeMillis;
     }

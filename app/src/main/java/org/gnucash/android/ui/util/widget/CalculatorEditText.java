@@ -30,8 +30,6 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.crashlytics.android.Crashlytics;
-
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
 
@@ -259,7 +257,7 @@ public class CalculatorEditText extends AppCompatEditText {
             setError(getContext().getString(R.string.label_error_invalid_expression));
             String msg = "Invalid expression: " + amountString;
             Log.e(this.getClass().getSimpleName(), msg);
-            Crashlytics.log(msg);
+//            Crashlytics.log(msg);
             return "";
         }
 

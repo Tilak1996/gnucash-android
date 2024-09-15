@@ -32,7 +32,6 @@ import android.support.v4.content.FileProvider;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.crashlytics.android.Crashlytics;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.FileMetadata;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -144,7 +143,7 @@ public class ExportAsyncTask extends AsyncTask<ExportParams, Void, Boolean> {
             mExportedFiles = mExporter.generateExport();
         } catch (final Exception e) {
             Log.e(TAG, "Error exporting: " + e.getMessage());
-            Crashlytics.logException(e);
+//            Crashlytics.logException(e);
             e.printStackTrace();
             if (mContext instanceof Activity) {
                 ((Activity)mContext).runOnUiThread(new Runnable() {
@@ -166,7 +165,7 @@ public class ExportAsyncTask extends AsyncTask<ExportParams, Void, Boolean> {
         try {
             moveToTarget();
         } catch (Exporter.ExporterException e) {
-            Crashlytics.log(Log.ERROR, TAG, "Error sending exported files to target: " + e.getMessage());
+//            Crashlytics.log(Log.ERROR, TAG, "Error sending exported files to target: " + e.getMessage());
             return false;
         }
 
@@ -365,7 +364,7 @@ public class ExportAsyncTask extends AsyncTask<ExportParams, Void, Boolean> {
                 inputStream.close();
                 exportedFile.delete(); //delete file to prevent cache accumulation
             } catch (IOException e) {
-                Crashlytics.logException(e);
+//                Crashlytics.logException(e);
                 Log.e(TAG, e.getMessage());
             } catch (com.dropbox.core.DbxException e) {
                 e.printStackTrace();

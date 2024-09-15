@@ -31,11 +31,6 @@ import android.support.multidex.MultiDexApplication;
 import android.support.v7.preference.PreferenceManager;
 import android.util.Log;
 
-import com.crashlytics.android.Crashlytics;
-import com.crashlytics.android.core.CrashlyticsCore;
-import com.uservoice.uservoicesdk.Config;
-import com.uservoice.uservoicesdk.UserVoice;
-
 import org.gnucash.android.BuildConfig;
 import org.gnucash.android.R;
 import org.gnucash.android.db.BookDbHelper;
@@ -59,7 +54,6 @@ import org.gnucash.android.ui.settings.PreferenceActivity;
 import java.util.Currency;
 import java.util.Locale;
 
-import io.fabric.sdk.android.Fabric;
 
 /**
  * An {@link Application} subclass for retrieving static context
@@ -122,9 +116,9 @@ public class GnuCashApplication extends MultiDexApplication {
         super.onCreate();
         GnuCashApplication.context = getApplicationContext();
 
-        Fabric.with(this, new Crashlytics.Builder().core(
-                new CrashlyticsCore.Builder().disabled(!isCrashlyticsEnabled()).build())
-                .build());
+//        Fabric.with(this, new Crashlytics.Builder().core(
+//                new CrashlyticsCore.Builder().disabled(!isCrashlyticsEnabled()).build())
+//                .build());
 
         setUpUserVoice();
 
@@ -158,7 +152,7 @@ public class GnuCashApplication extends MultiDexApplication {
         try {
             mainDb = mDbHelper.getWritableDatabase();
         } catch (SQLException e) {
-            Crashlytics.logException(e);
+//            Crashlytics.logException(e);
             Log.e("GnuCashApplication", "Error getting database: " + e.getMessage());
             mainDb = mDbHelper.getReadableDatabase();
         }
@@ -277,7 +271,7 @@ public class GnuCashApplication extends MultiDexApplication {
         try { //there are some strange locales out there
             currencyCode = Currency.getInstance(locale).getCurrencyCode();
         } catch (Throwable e) {
-            Crashlytics.logException(e);
+//            Crashlytics.logException(e);
             Log.e(context.getString(R.string.app_name), "" + e.getMessage());
         } finally {
             currencyCode = prefs.getString(context.getString(R.string.key_default_currency), currencyCode);
@@ -358,14 +352,14 @@ public class GnuCashApplication extends MultiDexApplication {
      */
     private void setUpUserVoice() {
         // Set this up once when your application launches
-        Config config = new Config("gnucash.uservoice.com");
-        config.setTopicId(107400);
-        config.setForumId(320493);
-        config.putUserTrait("app_version_name", BuildConfig.VERSION_NAME);
-        config.putUserTrait("app_version_code", BuildConfig.VERSION_CODE);
-        config.putUserTrait("android_version", Build.VERSION.RELEASE);
+//        Config config = new Config("gnucash.uservoice.com");
+//        config.setTopicId(107400);
+//        config.setForumId(320493);
+//        config.putUserTrait("app_version_name", BuildConfig.VERSION_NAME);
+//        config.putUserTrait("app_version_code", BuildConfig.VERSION_CODE);
+//        config.putUserTrait("android_version", Build.VERSION.RELEASE);
         // config.identifyUser("USER_ID", "User Name", "email@example.com");
-        UserVoice.init(config, this);
+//        UserVoice.init(config, this);
     }
 
 }

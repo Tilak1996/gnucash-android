@@ -25,8 +25,6 @@ import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.crashlytics.android.Crashlytics;
-
 import org.gnucash.android.app.GnuCashApplication;
 import org.gnucash.android.db.adapter.BooksDbAdapter;
 import org.gnucash.android.export.ExportFormat;
@@ -123,7 +121,7 @@ public class BackupManager {
             writer.close();
             return true;
         } catch (IOException | Exporter.ExporterException e) {
-            Crashlytics.logException(e);
+//            Crashlytics.logException(e);
             Log.e("GncXmlExporter", "Error creating XML  backup", e);
             return false;
         }

@@ -29,8 +29,6 @@ import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.widget.Toast;
 
-import com.crashlytics.android.Crashlytics;
-
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
 import org.gnucash.android.db.DatabaseSchema;
@@ -212,7 +210,7 @@ public class AccountPreferencesFragment extends PreferenceFragmentCompat impleme
                     try {
                         exportTask.execute(exportParams).get();
                     } catch (InterruptedException | ExecutionException e) {
-                        Crashlytics.logException(e);
+//                        Crashlytics.logException(e);
                         Toast.makeText(getActivity(), "An error occurred during the Accounts CSV export",
                                 Toast.LENGTH_LONG).show();
                     }

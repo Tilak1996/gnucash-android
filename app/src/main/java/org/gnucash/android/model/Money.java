@@ -20,8 +20,6 @@ package org.gnucash.android.model;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.crashlytics.android.Crashlytics;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -201,7 +199,7 @@ public final class Money implements Comparable<Money>{
 			String msg = "Currency " + mCommodity.getCurrencyCode() +
 					" with scale " + getScale() +
 					" has amount " + mAmount.toString();
-			Crashlytics.log(msg);
+//			Crashlytics.log(msg);
 			Log.e(getClass().getName(), msg);
 			throw e;
 		}

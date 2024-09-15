@@ -29,8 +29,6 @@ import android.support.v7.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.crashlytics.android.Crashlytics;
-
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
 import org.gnucash.android.db.adapter.AccountsDbAdapter;
@@ -206,7 +204,7 @@ public class MigrationHelper {
                         MigrationHelper.moveFile(src, dst);
                     } catch (IOException e) {
                         Log.e(LOG_TAG, "Error migrating " + src.getName());
-                        Crashlytics.logException(e);
+//                        Crashlytics.logException(e);
                     }
                 }
             } else {
@@ -222,7 +220,7 @@ public class MigrationHelper {
                         MigrationHelper.moveFile(src, dst);
                     } catch (IOException e) {
                         Log.e(LOG_TAG, "Error migrating backup: " + src.getName());
-                        Crashlytics.logException(e);
+//                        Crashlytics.logException(e);
                     }
                 }
             }
@@ -886,7 +884,7 @@ public class MigrationHelper {
                 importCommodities(db);
             } catch (SAXException | ParserConfigurationException | IOException e) {
                 Log.e(DatabaseHelper.LOG_TAG, "Error loading currencies into the database", e);
-                Crashlytics.logException(e);
+//                Crashlytics.logException(e);
                 throw new RuntimeException(e);
             }
 
@@ -1537,7 +1535,7 @@ public class MigrationHelper {
                 MigrationHelper.moveFile(src, dst);
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Error moving file " + src.getPath());
-                Crashlytics.logException(e);
+//                Crashlytics.logException(e);
             }
         }
     }
@@ -1574,8 +1572,8 @@ public class MigrationHelper {
                     ex.printStackTrace();
                     String msg = String.format("Error moving files from %s to %s", srcDir.getPath(), dstDir.getPath());
                     Log.e(LOG_TAG, msg);
-                    Crashlytics.log(msg);
-                    Crashlytics.logException(ex);
+//                    Crashlytics.log(msg);
+//                    Crashlytics.logException(ex);
                 }
 
             }

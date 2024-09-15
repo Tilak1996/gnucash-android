@@ -28,8 +28,6 @@ import android.provider.OpenableColumns;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.crashlytics.android.Crashlytics;
-
 import org.gnucash.android.R;
 import org.gnucash.android.db.DatabaseSchema;
 import org.gnucash.android.db.adapter.BooksDbAdapter;
@@ -82,12 +80,12 @@ public class ImportAsyncTask extends AsyncTask<Uri, Void, Boolean> {
 
         } catch (Exception exception){
             Log.e(ImportAsyncTask.class.getName(), "" + exception.getMessage());
-            Crashlytics.log("Could not open: " + uris[0].toString());
-            Crashlytics.logException(exception);
+//            Crashlytics.log("Could not open: " + uris[0].toString());
+//            Crashlytics.logException(exception);
             exception.printStackTrace();
 
             final String err_msg = exception.getLocalizedMessage();
-            Crashlytics.log(err_msg);
+//            Crashlytics.log(err_msg);
             mContext.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {

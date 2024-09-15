@@ -21,8 +21,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.crashlytics.android.Crashlytics;
-
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
 import org.gnucash.android.db.adapter.AccountsDbAdapter;
@@ -218,7 +216,7 @@ public class OfxExporter extends Exporter{
             transformer.transform(source, result);
         } catch (TransformerException tfException) {
             Log.e(LOG_TAG, tfException.getMessage());
-            Crashlytics.logException(tfException);
+//            Crashlytics.logException(tfException);
         }
     }
 

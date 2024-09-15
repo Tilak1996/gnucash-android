@@ -21,8 +21,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.crashlytics.android.Crashlytics;
-
 import org.gnucash.android.R;
 import org.gnucash.android.export.ExportParams;
 import org.gnucash.android.export.Exporter;
@@ -84,8 +82,8 @@ public class CsvTransactionsExporter extends Exporter{
         try (CsvWriter csvWriter = new CsvWriter(new FileWriter(outputFile), "" + mCsvSeparator)){
             generateExport(csvWriter);
         } catch (IOException ex){
-            Crashlytics.log("Error exporting CSV");
-            Crashlytics.logException(ex);
+//            Crashlytics.log("Error exporting CSV");
+//            Crashlytics.logException(ex);
             throw new ExporterException(mExportParams, ex);
         }
 
@@ -164,7 +162,7 @@ public class CsvTransactionsExporter extends Exporter{
 
             PreferencesHelper.setLastExportTime(TimestampHelper.getTimestampFromNow());
         } catch (IOException e) {
-            Crashlytics.logException(e);
+//            Crashlytics.logException(e);
             throw new ExporterException(mExportParams, e);
         }
     }

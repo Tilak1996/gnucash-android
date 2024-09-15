@@ -28,8 +28,6 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.crashlytics.android.Crashlytics;
-
 import org.gnucash.android.app.GnuCashApplication;
 import org.gnucash.android.model.AccountType;
 import org.gnucash.android.model.Money;
@@ -132,7 +130,7 @@ public class TransactionsDbAdapter extends DatabaseAdapter<Transaction> {
             mDb.setTransactionSuccessful();
         } catch (SQLException sqlEx) {
             Log.e(LOG_TAG, sqlEx.getMessage());
-            Crashlytics.logException(sqlEx);
+//            Crashlytics.logException(sqlEx);
         } finally {
             mDb.endTransaction();
         }

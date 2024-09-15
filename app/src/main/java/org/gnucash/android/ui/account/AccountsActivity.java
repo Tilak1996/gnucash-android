@@ -48,7 +48,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.crashlytics.android.Crashlytics;
 import com.kobakei.ratethisapp.RateThisApp;
 
 import org.gnucash.android.BuildConfig;
@@ -383,7 +382,7 @@ public class AccountsActivity extends BaseDrawerActivity implements OnAccountCli
             packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
             releaseTitle.append(" - v").append(packageInfo.versionName);
         } catch (NameNotFoundException e) {
-            Crashlytics.logException(e);
+//            Crashlytics.logException(e);
             Log.e(LOG_TAG, "Error displaying 'Whats new' dialog");
         }
 
@@ -465,8 +464,8 @@ public class AccountsActivity extends BaseDrawerActivity implements OnAccountCli
         try {
             activity.startActivityForResult(chooser, REQUEST_PICK_ACCOUNTS_FILE);
         } catch (ActivityNotFoundException ex){
-            Crashlytics.log("No file manager for selecting files available");
-            Crashlytics.logException(ex);
+//            Crashlytics.log("No file manager for selecting files available");
+//            Crashlytics.logException(ex);
             Toast.makeText(activity, R.string.toast_install_file_manager, Toast.LENGTH_LONG).show();
         }
     }
@@ -486,8 +485,8 @@ public class AccountsActivity extends BaseDrawerActivity implements OnAccountCli
         try {
             fragment.startActivityForResult(chooser, REQUEST_PICK_ACCOUNTS_FILE);
         } catch (ActivityNotFoundException ex){
-            Crashlytics.log("No file manager for selecting files available");
-            Crashlytics.logException(ex);
+//            Crashlytics.log("No file manager for selecting files available");
+//            Crashlytics.logException(ex);
             Toast.makeText(fragment.getActivity(), R.string.toast_install_file_manager, Toast.LENGTH_LONG).show();
         }
     }
