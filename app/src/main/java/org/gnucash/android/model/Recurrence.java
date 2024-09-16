@@ -18,7 +18,7 @@ package org.gnucash.android.model;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
