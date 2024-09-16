@@ -19,7 +19,7 @@ import android.content.res.ColorStateList;
 import android.os.Build;
 import android.os.Bundle;
 import androidx.annotation.Nullable;
-import android.support.v4.app.FragmentManager;
+import androidx.fragment.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.AppCompatButton;

@@ -18,7 +18,8 @@ package org.gnucash.android.ui.util.widget;
 import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
+
 import android.util.AttributeSet;
 import android.view.View;
 

@@ -22,7 +22,7 @@ import android.os.Bundle;
 import androidx.annotation.LayoutRes;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;

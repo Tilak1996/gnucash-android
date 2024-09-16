@@ -23,7 +23,7 @@ import android.inputmethodservice.KeyboardView;
 import android.os.Bundle;
 import androidx.annotation.Nullable;
 import android.support.design.widget.TextInputLayout;
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;

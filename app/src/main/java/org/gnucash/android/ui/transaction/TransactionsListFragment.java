@@ -22,7 +22,7 @@ import android.content.res.Configuration;
 import android.database.Cursor;
 import android.os.Bundle;
 import androidx.annotation.Nullable;
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBar;

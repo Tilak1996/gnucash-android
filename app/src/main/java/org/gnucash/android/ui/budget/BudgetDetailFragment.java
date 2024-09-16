@@ -21,13 +21,15 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.fragment.app.Fragment;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -61,17 +63,14 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 /**
  * Fragment for displaying budget details
  */
 public class BudgetDetailFragment extends Fragment implements Refreshable {
-    @BindView(R.id.primary_text)        TextView mBudgetNameTextView;
-    @BindView(R.id.secondary_text)      TextView mBudgetDescriptionTextView;
-    @BindView(R.id.budget_recurrence)   TextView mBudgetRecurrence;
-    @BindView(R.id.budget_amount_recycler) EmptyRecyclerView mRecyclerView;
+    TextView mBudgetNameTextView;
+    TextView mBudgetDescriptionTextView;
+    TextView mBudgetRecurrence;
+    EmptyRecyclerView mRecyclerView;
 
     private String mBudgetUID;
     private BudgetsDbAdapter mBudgetsDbAdapter;
@@ -88,7 +87,10 @@ public class BudgetDetailFragment extends Fragment implements Refreshable {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_budget_detail, container, false);
-        ButterKnife.bind(this, view);
+        mBudgetNameTextView = view.findViewById(R.id.primary_text);
+        mBudgetDescriptionTextView = view.findViewById(R.id.secondary_text);
+        mBudgetRecurrence = view.findViewById(R.id.budget_recurrence);
+        mRecyclerView = view.findViewById(R.id.budget_amount_recycler);
         mBudgetDescriptionTextView.setMaxLines(3);
 
         mRecyclerView.setHasFixedSize(true);
@@ -185,7 +187,7 @@ public class BudgetDetailFragment extends Fragment implements Refreshable {
     }
 
 
-    public class BudgetAmountAdapter extends RecyclerView.Adapter<BudgetAmountAdapter.BudgetAmountViewHolder>{
+    public class BudgetAmountAdapter extends RecyclerView.Adapter<BudgetAmountAdapter.BudgetAmountViewHolder> {
         private List<BudgetAmount> mBudgetAmounts;
         private Budget mBudget;
 
@@ -201,7 +203,7 @@ public class BudgetDetailFragment extends Fragment implements Refreshable {
         }
 
         @Override
-        public void onBindViewHolder(BudgetAmountViewHolder holder, final int position) {
+        public void onBindViewHolder(@NonNull BudgetAmountViewHolder holder, int position) {
             BudgetAmount budgetAmount = mBudgetAmounts.get(position);
             Money projectedAmount = budgetAmount.getAmount();
             AccountsDbAdapter accountsDbAdapter = AccountsDbAdapter.getInstance();
@@ -293,16 +295,21 @@ public class BudgetDetailFragment extends Fragment implements Refreshable {
         }
 
         class BudgetAmountViewHolder extends RecyclerView.ViewHolder {
-            @BindView(R.id.budget_account)      TextView budgetAccount;
-            @BindView(R.id.budget_amount)       TextView budgetAmount;
-            @BindView(R.id.budget_spent)        TextView budgetSpent;
-            @BindView(R.id.budget_left)         TextView budgetLeft;
-            @BindView(R.id.budget_indicator)    ProgressBar budgetIndicator;
-            @BindView(R.id.budget_chart)        BarChart budgetChart;
+            TextView budgetAccount;
+            TextView budgetAmount;
+            TextView budgetSpent;
+            TextView budgetLeft;
+            ProgressBar budgetIndicator;
+            BarChart budgetChart;
 
             public BudgetAmountViewHolder(View itemView) {
                 super(itemView);
-                ButterKnife.bind(this, itemView);
+                budgetAccount = itemView.findViewById(R.id.budget_account);
+                budgetAmount = itemView.findViewById(R.id.budget_amount);
+                budgetSpent = itemView.findViewById(R.id.budget_spent);
+                budgetLeft = itemView.findViewById(R.id.budget_left);
+                budgetIndicator = itemView.findViewById(R.id.budget_indicator);
+                budgetChart = itemView.findViewById(R.id.budget_chart);
             }
 
         }

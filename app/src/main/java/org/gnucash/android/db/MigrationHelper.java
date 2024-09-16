@@ -25,7 +25,6 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Environment;
-import android.support.v7.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -81,6 +80,8 @@ import static org.gnucash.android.db.DatabaseSchema.RecurrenceEntry;
 import static org.gnucash.android.db.DatabaseSchema.ScheduledActionEntry;
 import static org.gnucash.android.db.DatabaseSchema.SplitEntry;
 import static org.gnucash.android.db.DatabaseSchema.TransactionEntry;
+
+import androidx.preference.PreferenceManager;
 
 /**
  * Collection of helper methods which are used during database migrations

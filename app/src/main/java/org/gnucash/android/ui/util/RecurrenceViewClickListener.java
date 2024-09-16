@@ -17,7 +17,7 @@
 package org.gnucash.android.ui.util;
 
 import android.os.Bundle;
-import android.support.v4.app.FragmentManager;
+import androidx.fragment.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.text.format.Time;
 import android.view.View;
