@@ -27,7 +27,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.cursoradapter.widget.SimpleCursorAdapter;
 import androidx.fragment.app.Fragment;
-import android.support.v7.app.ActionBar;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import android.text.format.DateUtils;
 import android.util.Log;

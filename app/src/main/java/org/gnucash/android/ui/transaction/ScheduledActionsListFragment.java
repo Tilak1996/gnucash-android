@@ -25,15 +25,16 @@ import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+
+import androidx.appcompat.view.ActionMode;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.ListFragment;
 import androidx.loader.app.LoaderManager;
 import androidx.core.content.ContextCompat;
 import androidx.loader.content.Loader;
 import androidx.cursoradapter.widget.SimpleCursorAdapter;
-import android.support.v7.app.ActionBar;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import android.support.v7.view.ActionMode;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;

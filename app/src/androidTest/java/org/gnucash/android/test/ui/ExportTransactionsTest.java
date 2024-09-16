@@ -30,7 +30,7 @@ import android.support.test.espresso.contrib.DrawerActions;
 import android.support.test.espresso.matcher.ViewMatchers;
 import android.support.test.rule.GrantPermissionRule;
 import android.support.test.runner.AndroidJUnit4;
-import android.support.v7.preference.PreferenceManager;
+import androidx.preference.PreferenceManager;
 import android.test.ActivityInstrumentationTestCase2;
 import android.util.Log;
 import android.widget.CompoundButton;

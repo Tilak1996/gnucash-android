@@ -27,13 +27,14 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+
+import androidx.appcompat.widget.AppCompatButton;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.core.content.ContextCompat;
 import androidx.viewpager.widget.ViewPager;
 import androidx.appcompat.app.AppCompatActivity;
-import android.support.v7.widget.AppCompatButton;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
@@ -74,7 +75,7 @@ public class FirstRunWizardActivity extends AppCompatActivity implements
 
     private boolean mConsumePageSelectedEvent;
 
-    @BindView(R.id.btn_save)    AppCompatButton mNextButton;
+    @BindView(R.id.btn_save) AppCompatButton mNextButton;
     @BindView(R.id.btn_cancel)  Button mPrevButton;
     @BindView(R.id.strip)       StepPagerStrip mStepPagerStrip;
 

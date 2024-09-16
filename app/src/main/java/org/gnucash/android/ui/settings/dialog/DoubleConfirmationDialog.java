@@ -18,8 +18,8 @@ package org.gnucash.android.ui.settings.dialog;
 
 import android.content.DialogInterface;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
-import android.support.v7.app.AlertDialog;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 

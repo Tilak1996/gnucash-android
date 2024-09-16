@@ -28,11 +28,12 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.widget.SearchView;
 import androidx.core.view.MenuItemCompat;
 import androidx.fragment.app.Fragment;
 import androidx.loader.app.LoaderManager.LoaderCallbacks;
 import androidx.loader.content.Loader;
-import android.support.v7.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -80,8 +81,8 @@ import butterknife.ButterKnife;
 public class AccountsListFragment extends Fragment implements
         Refreshable,
         LoaderCallbacks<Cursor>,
-        android.support.v7.widget.SearchView.OnQueryTextListener,
-        android.support.v7.widget.SearchView.OnCloseListener {
+        SearchView.OnQueryTextListener,
+        SearchView.OnCloseListener {
 
     AccountRecyclerAdapter mAccountRecyclerAdapter;
     @BindView(R.id.account_recycler_view)  EmptyRecyclerView mRecyclerView;
@@ -134,7 +135,7 @@ public class AccountsListFragment extends Fragment implements
     /**
      * Search view for searching accounts
      */
-    private android.support.v7.widget.SearchView mSearchView;
+    private SearchView mSearchView;
 
     public static AccountsListFragment newInstance(DisplayMode displayMode){
         AccountsListFragment fragment = new AccountsListFragment();
@@ -279,7 +280,7 @@ public class AccountsListFragment extends Fragment implements
 
             SearchManager searchManager =
                     (SearchManager) GnuCashApplication.getAppContext().getSystemService(Context.SEARCH_SERVICE);
-            mSearchView = (android.support.v7.widget.SearchView)
+            mSearchView = (SearchView)
                 MenuItemCompat.getActionView(menu.findItem(R.id.menu_search));
             if (mSearchView == null)
                 return;
