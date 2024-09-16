@@ -22,7 +22,8 @@ import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
-import android.support.v4.app.JobIntentService;
+import androidx.core.app.JobIntentService;
+
 import android.util.Log;
 
 import org.gnucash.android.app.GnuCashApplication;

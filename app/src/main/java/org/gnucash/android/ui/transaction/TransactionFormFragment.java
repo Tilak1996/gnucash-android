@@ -25,8 +25,8 @@ import android.database.Cursor;
 import android.inputmethodservice.KeyboardView;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
+import androidx.cursoradapter.widget.SimpleCursorAdapter;
 import androidx.fragment.app.Fragment;
-import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import android.text.format.DateUtils;
@@ -380,7 +380,7 @@ public class TransactionFormFragment extends Fragment implements
      * Extension of SimpleCursorAdapter which is used to populate the fields for the list items
      * in the transactions suggestions (auto-complete transaction description).
      */
-    private class DropDownCursorAdapter extends SimpleCursorAdapter{
+    private class DropDownCursorAdapter extends SimpleCursorAdapter {
 
         public DropDownCursorAdapter(Context context, int layout, Cursor c, String[] from, int[] to) {
             super(context, layout, c, from, to, 0);

@@ -18,7 +18,8 @@ package org.gnucash.android.db;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.support.v4.content.AsyncTaskLoader;
+
+import androidx.loader.content.AsyncTaskLoader;
 import androidx.loader.content.Loader;
 
 import org.gnucash.android.db.adapter.DatabaseAdapter;

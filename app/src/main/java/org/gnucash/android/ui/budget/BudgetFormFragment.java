@@ -22,7 +22,6 @@ import android.database.Cursor;
 import android.inputmethodservice.KeyboardView;
 import android.os.Bundle;
 import androidx.annotation.Nullable;
-import com.google.android.material.textField.TextInputLayout;
 import androidx.fragment.app.Fragment;
 import android.support.v7.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -43,6 +42,7 @@ import com.codetroopers.betterpickers.calendardatepicker.CalendarDatePickerDialo
 import com.codetroopers.betterpickers.recurrencepicker.EventRecurrence;
 import com.codetroopers.betterpickers.recurrencepicker.EventRecurrenceFormatter;
 import com.codetroopers.betterpickers.recurrencepicker.RecurrencePickerDialogFragment;
+import com.google.android.material.textfield.TextInputLayout;
 
 import org.gnucash.android.R;
 import org.gnucash.android.db.DatabaseSchema;
@@ -83,7 +83,7 @@ public class BudgetFormFragment extends Fragment implements RecurrencePickerDial
     @BindView(R.id.input_budget_name)   EditText mBudgetNameInput;
     @BindView(R.id.input_description)   EditText mDescriptionInput;
     @BindView(R.id.input_recurrence)    TextView mRecurrenceInput;
-    @BindView(R.id.name_text_input_layout)  TextInputLayout mNameTextInputLayout;
+    @BindView(R.id.name_text_input_layout) TextInputLayout mNameTextInputLayout;
     @BindView(R.id.calculator_keyboard)     KeyboardView mKeyboardView;
     @BindView(R.id.input_budget_amount)     CalculatorEditText mBudgetAmountInput;
     @BindView(R.id.input_budget_account_spinner) Spinner mBudgetAccountSpinner;

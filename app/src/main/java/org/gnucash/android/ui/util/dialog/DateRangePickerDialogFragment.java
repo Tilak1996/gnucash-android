@@ -20,7 +20,8 @@ import android.app.Dialog;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.support.v4.app.DialogFragment;
+import androidx.fragment.app.DialogFragment;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,7 +44,7 @@ import butterknife.ButterKnife;
  * It is currently used for selecting ranges for reports
  * @author Ngewi Fet <ngewif@gmail.com>
  */
-public class DateRangePickerDialogFragment extends DialogFragment{
+public class DateRangePickerDialogFragment extends DialogFragment {
 
     @BindView(R.id.calendar_view) CalendarPickerView mCalendarPickerView;
     @BindView(R.id.btn_save)    Button mDoneButton;

@@ -22,11 +22,11 @@ static def gitSha() {
 android {
     namespace "org.gnucash.android"
     defaultConfig {
-        compileSdk 33
+        compileSdk 34
         applicationId "org.gnucash.android"
         testApplicationId 'org.gnucash.android.test'
         minSdkVersion 27
-        targetSdkVersion 33
+        targetSdkVersion 34
         versionCode versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100 + versionBuild
         versionName "${versionMajor}.${versionMinor}.${versionPatch}"
         resValue "string", "app_version_name", "${versionName}"
@@ -196,8 +196,7 @@ repositories{
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.github.nextcloud:android-library:1.0.31'
-    implementation('com.android.support:support-v4:'       + androidSupportVersion,
-                   'com.android.support:appcompat-v7:'     + androidSupportVersion,
+    implementation('com.android.support:appcompat-v7:'     + androidSupportVersion,
                    'com.google.android.material:material:1.12.0',
                    'androidx.preference:preference:'    + androidXSupportVersion,
                    'androidx.recyclerview:recyclerview:'  + androidXSupportVersion,
@@ -205,7 +204,7 @@ dependencies {
 //                   'org.jraf:android-switch-backport:2.0.1@aar',
                    'com.github.PhilJay:MPAndroidChart:v2.1.3',
                    'joda-time:joda-time:2.9.4',
-                   'com.google.android.gms:play-services-drive:9.6.1',
+//                   'com.google.android.gms:play-services-drive:9.6.1',
 //                   'io.github.kobakei:ratethisapp:1.1.3',
                    'com.squareup:android-times-square:1.6.5@aar',
                    'com.github.techfreak:wizardpager:1.0.3',

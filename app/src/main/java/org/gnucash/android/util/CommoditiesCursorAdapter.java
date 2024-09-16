@@ -19,7 +19,7 @@ package org.gnucash.android.util;
 import android.content.Context;
 import android.database.Cursor;
 import androidx.annotation.LayoutRes;
-import android.support.v4.widget.SimpleCursorAdapter;
+import androidx.cursoradapter.widget.SimpleCursorAdapter;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;

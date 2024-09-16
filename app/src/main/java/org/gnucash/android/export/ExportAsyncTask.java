@@ -28,7 +28,8 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import androidx.annotation.NonNull;
-import android.support.v4.content.FileProvider;
+import androidx.core.content.FileProvider;
+
 import android.util.Log;
 import android.widget.Toast;
 

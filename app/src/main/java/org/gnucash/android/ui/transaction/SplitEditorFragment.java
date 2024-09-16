@@ -22,7 +22,7 @@ import android.database.Cursor;
 import android.inputmethodservice.KeyboardView;
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
-import android.support.v4.widget.SimpleCursorAdapter;
+import androidx.cursoradapter.widget.SimpleCursorAdapter;
 import android.support.v7.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import android.text.Editable;
