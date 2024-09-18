@@ -36,9 +36,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 /**
  * Dialog for picking date ranges in terms of months.
  * It is currently used for selecting ranges for reports
@@ -46,9 +43,9 @@ import butterknife.ButterKnife;
  */
 public class DateRangePickerDialogFragment extends DialogFragment {
 
-    @BindView(R.id.calendar_view) CalendarPickerView mCalendarPickerView;
-    @BindView(R.id.btn_save)    Button mDoneButton;
-    @BindView(R.id.btn_cancel)  Button mCancelButton;
+    CalendarPickerView mCalendarPickerView;
+    Button mDoneButton;
+    Button mCancelButton;
 
     private Date mStartRange = LocalDate.now().minusMonths(1).toDate();
     private Date mEndRange = LocalDate.now().toDate();
@@ -74,7 +71,9 @@ public class DateRangePickerDialogFragment extends DialogFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.dialog_date_range_picker, container, false);
-        ButterKnife.bind(this, view);
+        mCalendarPickerView = view.findViewById(R.id.calendar_view);
+        mDoneButton = view.findViewById(R.id.btn_save);
+        mCancelButton = view.findViewById(R.id.btn_cancel);
 
 
         Calendar nextYear = Calendar.getInstance();
@@ -85,7 +84,7 @@ public class DateRangePickerDialogFragment extends DialogFragment {
                 .inMode(CalendarPickerView.SelectionMode.RANGE)
                 .withSelectedDate(today);
 
-        mDoneButton.setText(R.string.done_label);
+        mDoneButton.setText(com.codetroopers.betterpickers.R.string.done_label);
         mDoneButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

@@ -50,8 +50,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import butterknife.BindView;
-
 /**
  * Activity for displaying report fragments (which must implement {@link BaseReportFragment})
  * <p>In order to add new reports, extend the {@link BaseReportFragment} class to provide the view
@@ -76,9 +74,9 @@ public class ReportsActivity extends BaseDrawerActivity implements AdapterView.O
     };
     private static final String STATE_REPORT_TYPE = "STATE_REPORT_TYPE";
 
-    @BindView(R.id.time_range_spinner) Spinner mTimeRangeSpinner;
-    @BindView(R.id.report_account_type_spinner) Spinner mAccountTypeSpinner;
-    @BindView(R.id.toolbar_spinner) Spinner mReportTypeSpinner;
+    private Spinner mTimeRangeSpinner;
+    private Spinner mAccountTypeSpinner;
+    private Spinner mReportTypeSpinner;
 
     private TransactionsDbAdapter mTransactionsDbAdapter;
     private AccountType mAccountType = AccountType.EXPENSE;
@@ -129,6 +127,9 @@ public class ReportsActivity extends BaseDrawerActivity implements AdapterView.O
         }
 
         super.onCreate(savedInstanceState);
+        mTimeRangeSpinner = findViewById(R.id.time_range_spinner);
+        mAccountTypeSpinner = findViewById(R.id.report_account_type_spinner);
+        mReportTypeSpinner = findViewById(R.id.toolbar_spinner);
         mTransactionsDbAdapter = TransactionsDbAdapter.getInstance();
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.report_time_range,

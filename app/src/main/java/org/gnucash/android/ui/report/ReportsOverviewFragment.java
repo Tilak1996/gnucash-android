@@ -23,8 +23,11 @@ import androidx.appcompat.widget.AppCompatButton;
 import androidx.core.view.ViewCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.core.content.ContextCompat;
+
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -51,9 +54,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.OnClick;
-
 import static com.github.mikephil.charting.components.Legend.LegendPosition;
 
 /**
@@ -64,15 +64,15 @@ public class ReportsOverviewFragment extends BaseReportFragment {
 
     public static final int LEGEND_TEXT_SIZE = 14;
 
-    @BindView(R.id.btn_pie_chart) Button mPieChartButton;
-    @BindView(R.id.btn_bar_chart) Button mBarChartButton;
-    @BindView(R.id.btn_line_chart) Button mLineChartButton;
-    @BindView(R.id.btn_balance_sheet) Button mBalanceSheetButton;
+    private Button mPieChartButton;
+    private Button mBarChartButton;
+    private Button mLineChartButton;
+    private Button mBalanceSheetButton;
 
-    @BindView(R.id.pie_chart) PieChart mChart;
-    @BindView(R.id.total_assets) TextView mTotalAssets;
-    @BindView(R.id.total_liabilities) TextView mTotalLiabilities;
-    @BindView(R.id.net_worth) TextView mNetWorth;
+    private PieChart mChart;
+    private TextView mTotalAssets;
+    private TextView mTotalLiabilities;
+    private TextView mNetWorth;
 
     private AccountsDbAdapter mAccountsDbAdapter;
     private Money mAssetsBalance;
@@ -84,6 +84,26 @@ public class ReportsOverviewFragment extends BaseReportFragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mAccountsDbAdapter = AccountsDbAdapter.getInstance();
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = super.onCreateView(inflater, container, savedInstanceState);
+        mPieChartButton = view.findViewById(R.id.btn_pie_chart);
+        mBarChartButton = view.findViewById(R.id.btn_bar_chart);
+        mLineChartButton = view.findViewById(R.id.btn_line_chart);
+        mBalanceSheetButton = view.findViewById(R.id.btn_balance_sheet);
+        mChart = view.findViewById(R.id.pie_chart);
+        mTotalAssets = view.findViewById(R.id.total_assets);
+        mTotalLiabilities = view.findViewById(R.id.total_liabilities);
+        mNetWorth = view.findViewById(R.id.net_worth);
+
+        mBarChartButton.setOnClickListener(this::onClickChartTypeButton);
+        mPieChartButton.setOnClickListener(this::onClickChartTypeButton);
+        mLineChartButton.setOnClickListener(this::onClickChartTypeButton);
+        mBalanceSheetButton.setOnClickListener(this::onClickChartTypeButton);
+        return view;
     }
 
     @Override
@@ -230,7 +250,7 @@ public class ReportsOverviewFragment extends BaseReportFragment {
         return new PieData(Collections.singletonList(""), dataSet);
     }
 
-    @OnClick({R.id.btn_bar_chart, R.id.btn_pie_chart, R.id.btn_line_chart, R.id.btn_balance_sheet})
+
     public void onClickChartTypeButton(View view){
         BaseReportFragment fragment;
         switch (view.getId()){

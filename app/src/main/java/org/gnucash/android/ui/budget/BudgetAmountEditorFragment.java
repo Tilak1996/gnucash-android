@@ -51,9 +51,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 /**
  * Fragment for editing budgeting amounts
  */
@@ -64,8 +61,8 @@ public class BudgetAmountEditorFragment extends Fragment {
     private List<View> mBudgetAmountViews = new ArrayList<>();
     private AccountsDbAdapter mAccountsDbAdapter;
 
-    @BindView(R.id.budget_amount_layout)    LinearLayout mBudgetAmountTableLayout;
-    @BindView(R.id.calculator_keyboard)     KeyboardView mKeyboardView;
+    LinearLayout mBudgetAmountTableLayout;
+    KeyboardView mKeyboardView;
 
     public static BudgetAmountEditorFragment newInstance(Bundle args){
         BudgetAmountEditorFragment fragment = new BudgetAmountEditorFragment();
@@ -78,7 +75,8 @@ public class BudgetAmountEditorFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_budget_amount_editor, container, false);
-        ButterKnife.bind(this, view);
+        mBudgetAmountTableLayout = view.findViewById(R.id.budget_amount_layout);
+        mKeyboardView = view.findViewById(R.id.calculator_keyboard);
         setupAccountSpinnerAdapter();
         return view;
     }
@@ -231,15 +229,18 @@ public class BudgetAmountEditorFragment extends Fragment {
      * View holder for budget amounts
      */
     class BudgetAmountViewHolder{
-        @BindView(R.id.currency_symbol)     TextView currencySymbolTextView;
-        @BindView(R.id.input_budget_amount) CalculatorEditText amountEditText;
-        @BindView(R.id.btn_remove_item)     ImageView removeItemBtn;
-        @BindView(R.id.input_budget_account_spinner) Spinner budgetAccountSpinner;
+        TextView currencySymbolTextView;
+        CalculatorEditText amountEditText;
+        ImageView removeItemBtn;
+        Spinner budgetAccountSpinner;
         View itemView;
 
         public BudgetAmountViewHolder(View view){
             itemView = view;
-            ButterKnife.bind(this, view);
+            currencySymbolTextView = view.findViewById(R.id.currency_symbol);
+            amountEditText = view.findViewById(R.id.input_budget_amount);
+            removeItemBtn = view.findViewById(R.id.btn_remove_item);
+            budgetAccountSpinner = view.findViewById(R.id.input_budget_account_spinner);
             itemView.setTag(this);
 
             amountEditText.bindListeners(mKeyboardView);

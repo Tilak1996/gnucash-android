@@ -21,8 +21,11 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import androidx.annotation.Nullable;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.BarChart;
@@ -52,8 +55,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
-import butterknife.BindView;
-
 import static org.gnucash.android.ui.report.ReportsActivity.COLORS;
 
 /**
@@ -73,7 +74,7 @@ public class StackedBarChartFragment extends BaseReportFragment {
 
     private AccountsDbAdapter mAccountsDbAdapter = AccountsDbAdapter.getInstance();
 
-    @BindView(R.id.bar_chart) BarChart mChart;
+    private BarChart mChart;
 
     private boolean mUseAccountColor = true;
     private boolean mTotalPercentageMode = true;
@@ -92,6 +93,14 @@ public class StackedBarChartFragment extends BaseReportFragment {
     @Override
     public ReportType getReportType() {
         return ReportType.BAR_CHART;
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = super.onCreateView(inflater, container, savedInstanceState);
+        mChart = view.findViewById(R.id.bar_chart);
+        return view;
     }
 
     @Override

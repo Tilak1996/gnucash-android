@@ -22,8 +22,12 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import androidx.annotation.Nullable;
+
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.Entry;
@@ -41,8 +45,6 @@ import org.gnucash.android.ui.report.ReportsActivity;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import butterknife.BindView;
 
 import static com.github.mikephil.charting.components.Legend.LegendForm;
 import static com.github.mikephil.charting.components.Legend.LegendPosition;
@@ -67,7 +69,7 @@ public class PieChartFragment extends BaseReportFragment {
      */
     private static final double GROUPING_SMALLER_SLICES_THRESHOLD = 5;
 
-    @BindView(R.id.pie_chart) PieChart mChart;
+    private PieChart mChart;
 
     private AccountsDbAdapter mAccountsDbAdapter;
 
@@ -76,6 +78,14 @@ public class PieChartFragment extends BaseReportFragment {
     private boolean mUseAccountColor = true;
 
     private boolean mGroupSmallerSlices = true;
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = super.onCreateView(inflater, container, savedInstanceState);
+        mChart = view.findViewById(R.id.pie_chart);
+        return view;
+    }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {

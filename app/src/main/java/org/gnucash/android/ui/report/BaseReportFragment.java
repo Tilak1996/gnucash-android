@@ -54,8 +54,6 @@ import butterknife.ButterKnife;
  * <p>All report fragments should extend this class. At the minimum, reports must implement
  * {@link #getLayoutResource()}, {@link #getReportType()}, {@link #generateReport()}, {@link #displayReport()} and {@link #getTitle()}</p>
  * <p>Implementing classes should create their own XML layouts and provide it in {@link #getLayoutResource()}.
- * Then annotate any views in the resource using {@code @Bind} annotation from ButterKnife library.
- * This base activity will automatically call {@link ButterKnife#bind(View)} for the layout.
  * </p>
  * <p>Any custom information to be initialized for the report should be done in {@link #onActivityCreated(Bundle)} in implementing classes.
  * The report is then generated in {@link #onStart()}
@@ -103,7 +101,7 @@ public abstract class BaseReportFragment extends Fragment implements
 
     protected ReportsActivity mReportsActivity;
 
-    @Nullable @BindView(R.id.selected_chart_slice) protected TextView mSelectedValueTextView;
+    protected TextView mSelectedValueTextView;
 
     private AsyncTask<Void, Void, Void> mReportGenerator;
 
@@ -167,7 +165,7 @@ public abstract class BaseReportFragment extends Fragment implements
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(getLayoutResource(), container, false);
-        ButterKnife.bind(this, view);
+        mSelectedValueTextView = view.findViewById(R.id.selected_chart_slice);
         return view;
     }
 

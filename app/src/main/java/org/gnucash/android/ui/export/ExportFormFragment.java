@@ -79,10 +79,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
-
 /**
  * Dialog fragment for exporting accounts and transactions in various formats
  * <p>The dialog is used for collecting information on the export options and then passing them
@@ -104,50 +100,50 @@ public class ExportFormFragment extends Fragment implements
 	 * The destination could either be SD card, or another application which
 	 * accepts files, like Google Drive.
 	 */
-	@BindView(R.id.spinner_export_destination) Spinner mDestinationSpinner;
+	private Spinner mDestinationSpinner;
 	
 	/**
 	 * Checkbox for deleting all transactions after exporting them
 	 */
-	@BindView(R.id.checkbox_post_export_delete) CheckBox mDeleteAllCheckBox;
+	private CheckBox mDeleteAllCheckBox;
 
     /**
      * Text view for showing warnings based on chosen export format
      */
-    @BindView(R.id.export_warning) TextView mExportWarningTextView;
+	private TextView mExportWarningTextView;
 
-	@BindView(R.id.target_uri) TextView mTargetUriTextView;
+	private TextView mTargetUriTextView;
 
 	/**
 	 * Recurrence text view
 	 */
-	@BindView(R.id.input_recurrence) TextView mRecurrenceTextView;
+	private TextView mRecurrenceTextView;
 
 	/**
 	 * Text view displaying start date to export from
 	 */
-	@BindView(R.id.export_start_date) TextView mExportStartDate;
+	private TextView mExportStartDate;
 
-	@BindView(R.id.export_start_time) TextView mExportStartTime;
+	private TextView mExportStartTime;
 
 	/**
 	 * Switch toggling whether to export all transactions or not
 	 */
-	@BindView(R.id.switch_export_all) SwitchCompat mExportAllSwitch;
+	private SwitchCompat mExportAllSwitch;
 
-	@BindView(R.id.export_date_layout) LinearLayout mExportDateLayout;
+	private LinearLayout mExportDateLayout;
 
-	@BindView(R.id.radio_ofx_format) RadioButton mOfxRadioButton;
-	@BindView(R.id.radio_qif_format) RadioButton mQifRadioButton;
-	@BindView(R.id.radio_xml_format) RadioButton mXmlRadioButton;
-	@BindView(R.id.radio_csv_transactions_format) RadioButton mCsvTransactionsRadioButton;
+	private RadioButton mOfxRadioButton;
+	private RadioButton mQifRadioButton;
+	private RadioButton mXmlRadioButton;
+	private RadioButton mCsvTransactionsRadioButton;
 
-	@BindView(R.id.radio_separator_comma_format) RadioButton mSeparatorCommaButton;
-	@BindView(R.id.radio_separator_colon_format) RadioButton mSeparatorColonButton;
-	@BindView(R.id.radio_separator_semicolon_format) RadioButton mSeparatorSemicolonButton;
-	@BindView(R.id.layout_csv_options) LinearLayout mCsvOptionsLayout;
+	private RadioButton mSeparatorCommaButton;
+	private RadioButton mSeparatorColonButton;
+	private RadioButton mSeparatorSemicolonButton;
+	private LinearLayout mCsvOptionsLayout;
 
-	@BindView(R.id.recurrence_options) View mRecurrenceOptionsView;
+	private View mRecurrenceOptionsView;
 	/**
 	 * Event recurrence options
 	 */
@@ -244,8 +240,24 @@ public class ExportFormFragment extends Fragment implements
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		View view = inflater.inflate(R.layout.fragment_export_form, container, false);
-
-		ButterKnife.bind(this, view);
+		 mDestinationSpinner = view.findViewById(R.id.spinner_export_destination);
+		 mDeleteAllCheckBox = view.findViewById(R.id.checkbox_post_export_delete);
+		 mExportWarningTextView = view.findViewById(R.id.export_warning);
+		 mTargetUriTextView = view.findViewById(R.id.target_uri);
+		 mRecurrenceTextView = view.findViewById(R.id.input_recurrence);
+		 mExportStartDate = view.findViewById(R.id.export_start_date);
+		 mExportStartTime = view.findViewById(R.id.export_start_time);
+		 mExportAllSwitch = view.findViewById(R.id.switch_export_all);
+		 mExportDateLayout = view.findViewById(R.id.export_date_layout);
+		 mOfxRadioButton = view.findViewById(R.id.radio_ofx_format);
+		 mQifRadioButton = view.findViewById(R.id.radio_qif_format);
+		 mXmlRadioButton = view.findViewById(R.id.radio_xml_format);
+		 mCsvTransactionsRadioButton = view.findViewById(R.id.radio_csv_transactions_format);
+		 mSeparatorCommaButton = view.findViewById(R.id.radio_separator_comma_format);
+		 mSeparatorColonButton = view.findViewById(R.id.radio_separator_colon_format);
+		 mSeparatorSemicolonButton = view.findViewById(R.id.radio_separator_semicolon_format);
+		 mCsvOptionsLayout = view.findViewById(R.id.layout_csv_options);
+		 mRecurrenceOptionsView = view.findViewById(R.id.recurrence_options);
 
 		bindViewListeners();
 

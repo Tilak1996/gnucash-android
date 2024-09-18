@@ -63,9 +63,6 @@ import org.gnucash.android.ui.util.widget.EmptyRecyclerView;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 /**
  * Budget list fragment
  */
@@ -80,14 +77,15 @@ public class BudgetListFragment extends Fragment implements Refreshable,
 
     private BudgetsDbAdapter mBudgetsDbAdapter;
 
-    @BindView(R.id.budget_recycler_view) EmptyRecyclerView mRecyclerView;
-    @BindView(R.id.empty_view) Button mProposeBudgets;
+    private EmptyRecyclerView mRecyclerView;
+    private Button mProposeBudgets;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_budget_list, container, false);
-        ButterKnife.bind(this, view);
+        mRecyclerView = view.findViewById(R.id.budget_recycler_view);
+        mProposeBudgets = view.findViewById(R.id.empty_view);
 
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setEmptyView(mProposeBudgets);
@@ -261,17 +259,22 @@ public class BudgetListFragment extends Fragment implements Refreshable,
         }
 
         class BudgetViewHolder extends RecyclerView.ViewHolder implements PopupMenu.OnMenuItemClickListener{
-            @BindView(R.id.primary_text)        TextView budgetName;
-            @BindView(R.id.secondary_text)      TextView accountName;
-            @BindView(R.id.budget_amount)       TextView budgetAmount;
-            @BindView(R.id.options_menu)        ImageView optionsMenu;
-            @BindView(R.id.budget_indicator)    ProgressBar budgetIndicator;
-            @BindView(R.id.budget_recurrence)   TextView budgetRecurrence;
+            private TextView budgetName;
+            private TextView accountName;
+            private TextView budgetAmount;
+            private ImageView optionsMenu;
+            private ProgressBar budgetIndicator;
+            private TextView budgetRecurrence;
             long budgetId;
 
             public BudgetViewHolder(View itemView) {
                 super(itemView);
-                ButterKnife.bind(this, itemView);
+                budgetName = itemView.findViewById(R.id.primary_text);
+                accountName = itemView.findViewById(R.id.secondary_text);
+                budgetAmount = itemView.findViewById(R.id.budget_amount);
+                optionsMenu = itemView.findViewById(R.id.options_menu);
+                budgetIndicator = itemView.findViewById(R.id.budget_indicator);
+                budgetRecurrence = itemView.findViewById(R.id.budget_recurrence);
 
                 optionsMenu.setOnClickListener(new View.OnClickListener() {
                     @Override

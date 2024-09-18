@@ -23,6 +23,7 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TableLayout;
 import android.widget.TextView;
 
@@ -38,19 +39,16 @@ import org.gnucash.android.ui.transaction.TransactionsActivity;
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.BindView;
-
 /**
  * Balance sheet report fragment
  * @author Ngewi Fet <ngewif@gmail.com>
  */
 public class BalanceSheetFragment extends BaseReportFragment {
 
-    @BindView(R.id.table_assets) TableLayout mAssetsTableLayout;
-    @BindView(R.id.table_liabilities) TableLayout mLiabilitiesTableLayout;
-    @BindView(R.id.table_equity) TableLayout mEquityTableLayout;
-
-    @BindView(R.id.total_liability_and_equity) TextView mNetWorth;
+    private TableLayout mAssetsTableLayout;
+    private TableLayout mLiabilitiesTableLayout;
+    private TableLayout mEquityTableLayout;
+    private TextView mNetWorth;
 
     AccountsDbAdapter mAccountsDbAdapter = AccountsDbAdapter.getInstance();
 
@@ -59,6 +57,17 @@ public class BalanceSheetFragment extends BaseReportFragment {
     private List<AccountType> mAssetAccountTypes;
     private List<AccountType> mLiabilityAccountTypes;
     private List<AccountType> mEquityAccountTypes;
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = super.onCreateView(inflater, container, savedInstanceState);
+        mAssetsTableLayout = view.findViewById(R.id.table_assets);
+        mLiabilitiesTableLayout = view.findViewById(R.id.table_liabilities);
+        mEquityTableLayout = view.findViewById(R.id.table_equity);
+        mNetWorth = view.findViewById(R.id.total_liability_and_equity);
+        return view;
+    }
 
     @Override
     public int getLayoutResource() {
