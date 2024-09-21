@@ -30,27 +30,21 @@ import java.text.DateFormat;
 import java.util.Date;
 import java.util.MissingFormatArgumentException;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-
 /**
  * Activity for displaying transaction information
  * @author Ngewi Fet <ngewif@gmail.com>
  */
 public class TransactionDetailActivity extends PasscodeLockActivity {
 
-    @BindView(R.id.trn_description) TextView mTransactionDescription;
-    @BindView(R.id.trn_time_and_date) TextView mTimeAndDate;
-    @BindView(R.id.trn_recurrence) TextView mRecurrence;
-    @BindView(R.id.trn_notes) TextView mNotes;
-    @BindView(R.id.toolbar) Toolbar mToolBar;
-    @BindView(R.id.transaction_account) TextView mTransactionAccount;
-    @BindView(R.id.balance_debit) TextView mDebitBalance;
-    @BindView(R.id.balance_credit) TextView mCreditBalance;
-
-    @BindView(R.id.fragment_transaction_details)
-    TableLayout mDetailTableLayout;
+    private TextView mTransactionDescription;
+    private TextView mTimeAndDate;
+    private TextView mRecurrence;
+    private TextView mNotes;
+    private Toolbar mToolBar;
+    private TextView mTransactionAccount;
+    private TextView mDebitBalance;
+    private TextView mCreditBalance;
+    private TableLayout mDetailTableLayout;
 
     private String mTransactionUID;
     private String mAccountUID;
@@ -63,6 +57,15 @@ public class TransactionDetailActivity extends PasscodeLockActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_transaction_detail);
+        mTransactionDescription = findViewById(R.id.trn_description);
+        mTimeAndDate = findViewById(R.id.trn_time_and_date);
+        mRecurrence = findViewById(R.id.trn_recurrence);
+        mNotes = findViewById(R.id.trn_notes);
+        mToolBar = findViewById(R.id.toolbar);
+        mTransactionAccount = findViewById(R.id.transaction_account);
+        mDebitBalance = findViewById(R.id.balance_debit);
+        mCreditBalance = findViewById(R.id.balance_credit);
+        mDetailTableLayout = findViewById(R.id.fragment_transaction_details);
 
         mTransactionUID = getIntent().getStringExtra(UxArgument.SELECTED_TRANSACTION_UID);
         mAccountUID     = getIntent().getStringExtra(UxArgument.SELECTED_ACCOUNT_UID);
@@ -71,7 +74,6 @@ public class TransactionDetailActivity extends PasscodeLockActivity {
             throw new MissingFormatArgumentException("You must specify both the transaction and account GUID");
         }
 
-        ButterKnife.bind(this);
         setSupportActionBar(mToolBar);
 
         ActionBar actionBar = getSupportActionBar();
@@ -93,15 +95,17 @@ public class TransactionDetailActivity extends PasscodeLockActivity {
     }
 
     class SplitAmountViewHolder {
-        @BindView(R.id.split_account_name) TextView accountName;
-        @BindView(R.id.split_debit) TextView splitDebit;
-        @BindView(R.id.split_credit) TextView splitCredit;
+        private TextView accountName;
+        private TextView splitDebit;
+        private TextView splitCredit;
 
         View itemView;
 
         public SplitAmountViewHolder(View view, Split split){
             itemView = view;
-            ButterKnife.bind(this, view);
+            accountName = view.findViewById(R.id.split_account_name);
+            splitDebit = view.findViewById(R.id.split_debit);
+            splitCredit = view.findViewById(R.id.split_credit);
 
             AccountsDbAdapter accountsDbAdapter = AccountsDbAdapter.getInstance();
             accountName.setText(accountsDbAdapter.getAccountFullName(split.getAccountUID()));
@@ -183,9 +187,7 @@ public class TransactionDetailActivity extends PasscodeLockActivity {
         mCreditBalance.setText("");
     }
 
-
-    @OnClick(R.id.fab_edit_transaction)
-    public void editTransaction(){
+    public void editTransaction(View v){
         Intent createTransactionIntent = new Intent(this.getApplicationContext(), FormActivity.class);
         createTransactionIntent.setAction(Intent.ACTION_INSERT_OR_EDIT);
         createTransactionIntent.putExtra(UxArgument.SELECTED_ACCOUNT_UID, mAccountUID);

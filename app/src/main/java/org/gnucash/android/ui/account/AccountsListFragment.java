@@ -70,9 +70,6 @@ import org.gnucash.android.util.BackupManager;
 
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 /**
  * Fragment for displaying the list of accounts in the database
  *
@@ -85,8 +82,8 @@ public class AccountsListFragment extends Fragment implements
         SearchView.OnCloseListener {
 
     AccountRecyclerAdapter mAccountRecyclerAdapter;
-    @BindView(R.id.account_recycler_view)  EmptyRecyclerView mRecyclerView;
-    @BindView(R.id.empty_view) TextView mEmptyTextView;
+    private EmptyRecyclerView mRecyclerView;
+    private TextView mEmptyTextView;
 
     /**
      * Describes the kinds of accounts that should be loaded in the accounts list.
@@ -149,7 +146,8 @@ public class AccountsListFragment extends Fragment implements
         View v = inflater.inflate(R.layout.fragment_accounts_list, container,
                 false);
 
-        ButterKnife.bind(this, v);
+        mRecyclerView = v.findViewById(R.id.account_recycler_view);
+        mEmptyTextView = v.findViewById(R.id.empty_view);
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setEmptyView(mEmptyTextView);
 
@@ -572,19 +570,26 @@ public class AccountsListFragment extends Fragment implements
 
 
         class AccountViewHolder extends RecyclerView.ViewHolder implements PopupMenu.OnMenuItemClickListener{
-            @BindView(R.id.primary_text) TextView accountName;
-            @BindView(R.id.secondary_text) TextView description;
-            @BindView(R.id.account_balance) TextView accountBalance;
-            @BindView(R.id.create_transaction) ImageView createTransaction;
-            @BindView(R.id.favorite_status) ImageView favoriteStatus;
-            @BindView(R.id.options_menu) ImageView optionsMenu;
-            @BindView(R.id.account_color_strip) View colorStripView;
-            @BindView(R.id.budget_indicator) ProgressBar budgetIndicator;
+            private TextView accountName;
+            private TextView description;
+            private TextView accountBalance;
+            private ImageView createTransaction;
+            private ImageView favoriteStatus;
+            private ImageView optionsMenu;
+            private View colorStripView;
+            private ProgressBar budgetIndicator;
             long accoundId;
 
             public AccountViewHolder(View itemView) {
                 super(itemView);
-                ButterKnife.bind(this, itemView);
+                accountName = itemView.findViewById(R.id.primary_text);
+                description = itemView.findViewById(R.id.secondary_text);
+                accountBalance = itemView.findViewById(R.id.account_balance);
+                createTransaction = itemView.findViewById(R.id.create_transaction);
+                favoriteStatus = itemView.findViewById(R.id.favorite_status);
+                optionsMenu = itemView.findViewById(R.id.options_menu);
+                colorStripView = itemView.findViewById(R.id.account_color_strip);
+                budgetIndicator = itemView.findViewById(R.id.budget_indicator);
 
                 optionsMenu.setOnClickListener(new View.OnClickListener() {
                     @Override

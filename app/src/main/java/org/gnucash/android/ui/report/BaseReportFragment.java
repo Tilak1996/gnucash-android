@@ -46,9 +46,6 @@ import org.joda.time.LocalDateTime;
 import org.joda.time.Months;
 import org.joda.time.Years;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 /**
  * Base class for report fragments.
  * <p>All report fragments should extend this class. At the minimum, reports must implement

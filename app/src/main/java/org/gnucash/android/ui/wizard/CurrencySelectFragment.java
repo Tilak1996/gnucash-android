@@ -30,8 +30,6 @@ import org.gnucash.android.R;
 import org.gnucash.android.db.adapter.CommoditiesDbAdapter;
 import org.gnucash.android.util.CommoditiesCursorAdapter;
 
-import butterknife.ButterKnife;
-
 /**
  * Displays a list of all currencies in the database and allows selection of one
  * <p>This fragment is intended for use with the first run wizard</p>
@@ -58,7 +56,7 @@ public class CurrencySelectFragment extends ListFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_wizard_currency_select_page, container, false);
-        ButterKnife.bind(this, view);
+//        ButterKnife.bind(this, view);
         return view;
     }
 

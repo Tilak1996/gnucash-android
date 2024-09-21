@@ -50,33 +50,27 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 /**
  * Dialog fragment for handling currency conversions when inputting transactions.
  * <p>This is used whenever a multi-currency transaction is being created.</p>
  */
 public class TransferFundsDialogFragment extends DialogFragment {
 
-    @BindView(R.id.from_currency)           TextView mFromCurrencyLabel;
-    @BindView(R.id.to_currency)             TextView mToCurrencyLabel;
-    @BindView(R.id.target_currency)         TextView mConvertedAmountCurrencyLabel;
-    @BindView(R.id.amount_to_convert)       TextView mStartAmountLabel;
-    @BindView(R.id.input_exchange_rate)     EditText mExchangeRateInput;
-    @BindView(R.id.input_converted_amount)  EditText mConvertedAmountInput;
-    @BindView(R.id.btn_fetch_exchange_rate) Button mFetchExchangeRateButton;
-    @BindView(R.id.radio_exchange_rate)     RadioButton mExchangeRateRadioButton;
-    @BindView(R.id.radio_converted_amount)  RadioButton mConvertedAmountRadioButton;
-    @BindView(R.id.label_exchange_rate_example)
-    TextView mSampleExchangeRate;
-    @BindView(R.id.exchange_rate_text_input_layout)
-    TextInputLayout mExchangeRateInputLayout;
-    @BindView(R.id.converted_amount_text_input_layout)
-    TextInputLayout mConvertedAmountInputLayout;
+    private TextView mFromCurrencyLabel;
+    private TextView mToCurrencyLabel;
+    private TextView mConvertedAmountCurrencyLabel;
+    private TextView mStartAmountLabel;
+    private EditText mExchangeRateInput;
+    private EditText mConvertedAmountInput;
+    private Button mFetchExchangeRateButton;
+    private RadioButton mExchangeRateRadioButton;
+    private RadioButton mConvertedAmountRadioButton;
+    private TextView mSampleExchangeRate;
+    private TextInputLayout mExchangeRateInputLayout;
+    private TextInputLayout mConvertedAmountInputLayout;
 
-    @BindView(R.id.btn_save) Button mSaveButton;
-    @BindView(R.id.btn_cancel) Button mCancelButton;
+    private Button mSaveButton;
+    private Button mCancelButton;
     Money mOriginAmount;
     private Commodity mTargetCommodity;
 
@@ -96,7 +90,21 @@ public class TransferFundsDialogFragment extends DialogFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.dialog_transfer_funds, container, false);
-        ButterKnife.bind(this, view);
+
+        mFromCurrencyLabel = view.findViewById(R.id.from_currency);
+        mToCurrencyLabel = view.findViewById(R.id.to_currency);
+        mConvertedAmountCurrencyLabel = view.findViewById(R.id.target_currency);
+        mStartAmountLabel = view.findViewById(R.id.amount_to_convert);
+        mExchangeRateInput = view.findViewById(R.id.input_exchange_rate);
+        mConvertedAmountInput = view.findViewById(R.id.input_converted_amount);
+        mFetchExchangeRateButton = view.findViewById(R.id.btn_fetch_exchange_rate);
+        mExchangeRateRadioButton = view.findViewById(R.id.radio_exchange_rate);
+        mConvertedAmountRadioButton = view.findViewById(R.id.radio_converted_amount);
+        mSampleExchangeRate = view.findViewById(R.id.label_exchange_rate_example);
+        mExchangeRateInputLayout = view.findViewById(R.id.exchange_rate_text_input_layout);
+        mConvertedAmountInputLayout = view.findViewById(R.id.converted_amount_text_input_layout);
+        mSaveButton = view.findViewById(R.id.btn_save);
+        mCancelButton = view.findViewById(R.id.btn_cancel);
 
         TransactionsActivity.displayBalance(mStartAmountLabel, mOriginAmount);
         String fromCurrencyCode = mOriginAmount.getCommodity().getCurrencyCode();

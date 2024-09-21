@@ -130,9 +130,9 @@ public class AccountsActivity extends BaseDrawerActivity implements OnAccountCli
     /**
      * ViewPager which manages the different tabs
      */
-    @BindView(R.id.pager) ViewPager mViewPager;
-    @BindView(R.id.fab_create_account) FloatingActionButton mFloatingActionButton;
-    @BindView(R.id.coordinatorLayout) CoordinatorLayout mCoordinatorLayout;
+    private ViewPager mViewPager;
+    private FloatingActionButton mFloatingActionButton;
+    private CoordinatorLayout mCoordinatorLayout;
 
     /**
      * Configuration for rating the app
@@ -220,6 +220,11 @@ public class AccountsActivity extends BaseDrawerActivity implements OnAccountCli
     @Override
 	public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mViewPager = findViewById(R.id.pager);
+        mFloatingActionButton = findViewById(R.id.fab_create_account);
+        mCoordinatorLayout = findViewById(R.id.coordinatorLayout);
+
 
         final Intent intent = getIntent();
         handleOpenFileIntent(intent);

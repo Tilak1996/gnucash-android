@@ -93,9 +93,6 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 /**
  * Fragment for creating or editing transactions
  * @author Ngewi Fet <ngewif@gmail.com>
@@ -144,65 +141,65 @@ public class TransactionFormFragment extends Fragment implements
 	/**
 	 * Button for setting the transaction type, either credit or debit
 	 */
-	@BindView(R.id.input_transaction_type) TransactionTypeSwitch mTransactionTypeSwitch;
+    private TransactionTypeSwitch mTransactionTypeSwitch;
 
 	/**
 	 * Input field for the transaction name (description)
 	 */
-	@BindView(R.id.input_transaction_name) AutoCompleteTextView mDescriptionEditText;
+    private AutoCompleteTextView mDescriptionEditText;
 
 	/**
 	 * Input field for the transaction amount
 	 */
-	@BindView(R.id.input_transaction_amount) CalculatorEditText mAmountEditText;
+    private CalculatorEditText mAmountEditText;
 
 	/**
 	 * Field for the transaction currency.
 	 * The transaction uses the currency of the account
 	 */
-	@BindView(R.id.currency_symbol) TextView mCurrencyTextView;
+    private TextView mCurrencyTextView;
 
 	/**
 	 * Input field for the transaction description (note)
 	 */
-	@BindView(R.id.input_description) EditText mNotesEditText;
+    private EditText mNotesEditText;
 
 	/**
 	 * Input field for the transaction date
 	 */
-	@BindView(R.id.input_date) TextView mDateTextView;
+    private TextView mDateTextView;
 
 	/**
 	 * Input field for the transaction time
 	 */
-	@BindView(R.id.input_time) TextView mTimeTextView;
+    private TextView mTimeTextView;
 
 	/**
 	 * Spinner for selecting the transfer account
 	 */
-	@BindView(R.id.input_transfer_account_spinner) Spinner mTransferAccountSpinner;
+    private Spinner mTransferAccountSpinner;
 
     /**
      * Checkbox indicating if this transaction should be saved as a template or not
      */
-    @BindView(R.id.checkbox_save_template) CheckBox mSaveTemplateCheckbox;
+    private CheckBox mSaveTemplateCheckbox;
 
-    @BindView(R.id.input_recurrence) TextView mRecurrenceTextView;
+    private TextView mRecurrenceTextView;
 
     /**
      * View which displays the calculator keyboard
      */
-    @BindView(R.id.calculator_keyboard) KeyboardView mKeyboardView;
+    private KeyboardView mKeyboardView;
 
     /**
      * Open the split editor
      */
-    @BindView(R.id.btn_split_editor) ImageView mOpenSplitEditor;
+    private ImageView mOpenSplitEditor;
 
     /**
      * Layout for transfer account and associated views
      */
-    @BindView(R.id.layout_double_entry) View mDoubleEntryLayout;
+    private View mDoubleEntryLayout;
 
     /**
      * Flag to note if double entry accounting is in use or not
@@ -254,7 +251,19 @@ public class TransactionFormFragment extends Fragment implements
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		View v = inflater.inflate(R.layout.fragment_transaction_form, container, false);
-        ButterKnife.bind(this, v);
+        mTransactionTypeSwitch = v.findViewById(R.id.input_transaction_type);
+        mDescriptionEditText = v.findViewById(R.id.input_transaction_name);
+        mAmountEditText = v.findViewById(R.id.input_transaction_amount);
+        mCurrencyTextView = v.findViewById(R.id.currency_symbol);
+        mNotesEditText = v.findViewById(R.id.input_description);
+        mDateTextView = v.findViewById(R.id.input_date);
+        mTimeTextView = v.findViewById(R.id.input_time);
+        mTransferAccountSpinner = v.findViewById(R.id.input_transfer_account_spinner);
+        mSaveTemplateCheckbox = v.findViewById(R.id.checkbox_save_template);
+        mRecurrenceTextView = v.findViewById(R.id.input_recurrence);
+        mKeyboardView = v.findViewById(R.id.calculator_keyboard);
+        mOpenSplitEditor = v.findViewById(R.id.btn_split_editor);
+        mDoubleEntryLayout = v.findViewById(R.id.layout_double_entry);
         mAmountEditText.bindListeners(mKeyboardView);
         mOpenSplitEditor.setOnClickListener(new View.OnClickListener() {
             @Override

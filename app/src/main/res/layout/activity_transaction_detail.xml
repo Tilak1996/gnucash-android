@@ -154,6 +154,7 @@
         android:layout_width="40dp"
         app:layout_anchor="@id/toolbar"
         app:layout_anchorGravity="bottom|left|start"
+        android:onClick="editTransaction"
         android:layout_marginLeft="6dp"
         android:scaleType="center"
         android:src="@drawable/ic_mode_edit_white_24dp"

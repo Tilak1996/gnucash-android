@@ -60,9 +60,6 @@ import org.gnucash.android.util.QualifiedAccountNameCursorAdapter;
 import java.util.Locale;
 import java.util.prefs.Preferences;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 /**
  * Activity for configuration which account to display on a widget.
  * The activity is opened each time a widget is added to the homescreen
@@ -72,11 +69,11 @@ public class WidgetConfigurationActivity extends Activity {
 	private AccountsDbAdapter mAccountsDbAdapter;
     private int mAppWidgetId;
 	
-	@BindView(R.id.input_accounts_spinner) Spinner mAccountsSpinner;
-	@BindView(R.id.input_books_spinner) Spinner mBooksSpinner;
-	@BindView(R.id.input_hide_account_balance) CheckBox mHideAccountBalance;
-	@BindView(R.id.btn_save) Button mOkButton;
-	@BindView(R.id.btn_cancel) Button mCancelButton;
+	private Spinner mAccountsSpinner;
+	private Spinner mBooksSpinner;
+	private CheckBox mHideAccountBalance;
+	private Button mOkButton;
+	private Button mCancelButton;
 
 
 	private SimpleCursorAdapter mAccountsCursorAdapter;
@@ -88,7 +85,11 @@ public class WidgetConfigurationActivity extends Activity {
 		setContentView(R.layout.widget_configuration);
 		setResult(RESULT_CANCELED);
 
-		ButterKnife.bind(this);
+		mAccountsSpinner = findViewById(R.id.input_accounts_spinner);
+		mBooksSpinner = findViewById(R.id.input_books_spinner);
+		mHideAccountBalance = findViewById(R.id.input_hide_account_balance);
+		mOkButton = findViewById(R.id.btn_save);
+		mCancelButton = findViewById(R.id.btn_cancel);
 
 		BooksDbAdapter booksDbAdapter = BooksDbAdapter.getInstance();
 		Cursor booksCursor = booksDbAdapter.fetchAllRecords();

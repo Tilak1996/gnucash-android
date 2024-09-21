@@ -38,8 +38,6 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.uservoice.uservoicesdk.UserVoice;
-
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
 import org.gnucash.android.db.DatabaseSchema;
@@ -51,10 +49,6 @@ import org.gnucash.android.ui.settings.PreferenceActivity;
 import org.gnucash.android.ui.transaction.ScheduledActionsActivity;
 import org.gnucash.android.util.BookUtils;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
-
 /**
  * Base activity implementing the navigation drawer, to be extended by all activities requiring one.
  * <p>
@@ -62,9 +56,6 @@ import butterknife.ButterKnife;
  *     (above the action bar) which can be used to display busy operations. See {@link #getProgressBar()}
  * </p>
  *
- * <p>Sub-classes should simply provide their layout using {@link #getContentView()} and then annotate
- * any variables they wish to use with {@link ButterKnife#bind(Activity)} annotations. The view
- * binding will be done in this base abstract class.<br>
  * The activity layout of the subclass is expected to contain {@code DrawerLayout} and
  * a {@code NavigationView}.<br>
  * Sub-class should also consider using the {@code toolbar.xml} or {@code toolbar_with_spinner.xml}
@@ -77,10 +68,10 @@ public abstract class BaseDrawerActivity extends PasscodeLockActivity implements
     PopupMenu.OnMenuItemClickListener {
 
     public static final int ID_MANAGE_BOOKS = 0xB00C;
-    @BindView(R.id.drawer_layout) DrawerLayout mDrawerLayout;
-    @BindView(R.id.nav_view) NavigationView mNavigationView;
-    @BindView(R.id.toolbar) Toolbar mToolbar;
-    @BindView(R.id.toolbar_progress) ProgressBar mToolbarProgress;
+    private DrawerLayout mDrawerLayout;
+    private NavigationView mNavigationView;
+    private Toolbar mToolbar;
+    private ProgressBar mToolbarProgress;
     protected TextView mBookNameTextView;
 
     protected ActionBarDrawerToggle mDrawerToggle;
@@ -108,7 +99,10 @@ public abstract class BaseDrawerActivity extends PasscodeLockActivity implements
             BookUtils.activateBook(bookUID);
         }
 
-        ButterKnife.bind(this);
+        mDrawerLayout = findViewById(R.id.drawer_layout);
+        mNavigationView = findViewById(R.id.nav_view);
+        mToolbar = findViewById(R.id.toolbar);
+        mToolbarProgress = findViewById(R.id.toolbar_progress);
         setSupportActionBar(mToolbar);
         final ActionBar actionBar = getSupportActionBar();
         if (actionBar != null){
@@ -283,7 +277,6 @@ public abstract class BaseDrawerActivity extends PasscodeLockActivity implements
             case R.id.nav_item_help:
                 SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
                 prefs.edit().putBoolean(UxArgument.SKIP_PASSCODE_SCREEN, true).apply();
-                UserVoice.launchUserVoice(this);
                 break;
         }
         mDrawerLayout.closeDrawer(mNavigationView);

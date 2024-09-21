@@ -20,8 +20,13 @@ package org.gnucash.android.ui.report.linechart;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+
+import androidx.annotation.Nullable;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Legend;
@@ -51,8 +56,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import butterknife.BindView;
-
 /**
  * Fragment for line chart reports
  *
@@ -80,7 +83,7 @@ public class CashFlowLineChartFragment extends BaseReportFragment {
     private long mLatestTransactionTimestamp;
     private boolean mChartDataPresent = true;
 
-    @BindView(R.id.line_chart) LineChart mChart;
+    private LineChart mChart;
 
     @Override
     public int getLayoutResource() {
@@ -108,6 +111,14 @@ public class CashFlowLineChartFragment extends BaseReportFragment {
         legend.setTextSize(16);
         legend.setForm(Legend.LegendForm.CIRCLE);
 
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View v = super.onCreateView(inflater, container, savedInstanceState);
+        mChart = v.findViewById(R.id.line_chart);
+        return v;
     }
 
     @Override
