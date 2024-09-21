@@ -69,9 +69,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 /**
  * Dialog for editing the splits in a transaction
  *
@@ -79,9 +76,9 @@ import butterknife.ButterKnife;
  */
 public class SplitEditorFragment extends Fragment {
 
-    @BindView(R.id.split_list_layout)   LinearLayout mSplitsLinearLayout;
-    @BindView(R.id.calculator_keyboard) KeyboardView mKeyboardView;
-    @BindView(R.id.imbalance_textview)  TextView mImbalanceTextView;
+    private LinearLayout mSplitsLinearLayout;
+    private KeyboardView mKeyboardView;
+    private TextView mImbalanceTextView;
 
     private AccountsDbAdapter mAccountsDbAdapter;
     private Cursor mCursor;
@@ -111,7 +108,9 @@ public class SplitEditorFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_split_editor, container, false);
-        ButterKnife.bind(this, view);
+        mSplitsLinearLayout = view.findViewById(R.id.split_list_layout);
+        mKeyboardView = view.findViewById(R.id.calculator_keyboard);
+        mImbalanceTextView = view.findViewById(R.id.imbalance_textview);
         return view;
     }
 
@@ -228,19 +227,25 @@ public class SplitEditorFragment extends Fragment {
      * Holds a split item view and binds the items in it
      */
     class SplitViewHolder implements OnTransferFundsListener{
-        @BindView(R.id.input_split_memo)        EditText splitMemoEditText;
-        @BindView(R.id.input_split_amount)      CalculatorEditText splitAmountEditText;
-        @BindView(R.id.btn_remove_split)        ImageView removeSplitButton;
-        @BindView(R.id.input_accounts_spinner)  Spinner accountsSpinner;
-        @BindView(R.id.split_currency_symbol)   TextView splitCurrencyTextView;
-        @BindView(R.id.split_uid)               TextView splitUidTextView;
-        @BindView(R.id.btn_split_type)          TransactionTypeSwitch splitTypeSwitch;
+        private EditText splitMemoEditText;
+        private CalculatorEditText splitAmountEditText;
+        private ImageView removeSplitButton;
+        private Spinner accountsSpinner;
+        private TextView splitCurrencyTextView;
+        private TextView splitUidTextView;
+        private TransactionTypeSwitch splitTypeSwitch;
 
         View splitView;
         Money quantity;
 
         public SplitViewHolder(View splitView, Split split){
-            ButterKnife.bind(this, splitView);
+            splitMemoEditText = splitView.findViewById(R.id.input_split_memo);
+            splitAmountEditText = splitView.findViewById(R.id.input_split_amount);
+            removeSplitButton = splitView.findViewById(R.id.btn_remove_split);
+            accountsSpinner = splitView.findViewById(R.id.input_accounts_spinner);
+            splitCurrencyTextView = splitView.findViewById(R.id.split_currency_symbol);
+            splitUidTextView = splitView.findViewById(R.id.split_uid);
+            splitTypeSwitch = splitView.findViewById(R.id.btn_split_type);
             this.splitView = splitView;
             if (split != null && !split.getQuantity().equals(split.getValue()))
                 this.quantity = split.getQuantity();

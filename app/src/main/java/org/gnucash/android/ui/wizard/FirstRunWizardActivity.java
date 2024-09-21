@@ -57,16 +57,13 @@ import org.gnucash.android.ui.util.TaskDelegate;
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 /**
  * Activity for managing the wizard displayed upon first run of the application
  */
 public class FirstRunWizardActivity extends AppCompatActivity implements
         PageFragmentCallbacks, ReviewFragment.Callbacks, ModelCallbacks {
 
-    @BindView(R.id.pager) ViewPager mPager;
+    private ViewPager mPager;
     private MyPagerAdapter mPagerAdapter;
 
     private boolean mEditingAfterReview;
@@ -75,9 +72,9 @@ public class FirstRunWizardActivity extends AppCompatActivity implements
 
     private boolean mConsumePageSelectedEvent;
 
-    @BindView(R.id.btn_save) AppCompatButton mNextButton;
-    @BindView(R.id.btn_cancel)  Button mPrevButton;
-    @BindView(R.id.strip)       StepPagerStrip mStepPagerStrip;
+    private Button mNextButton;
+    private Button mPrevButton;
+    private StepPagerStrip mStepPagerStrip;
 
     private List<Page> mCurrentPageSequence;
     private String mAccountOptions;
@@ -92,7 +89,10 @@ public class FirstRunWizardActivity extends AppCompatActivity implements
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_first_run_wizard);
-        ButterKnife.bind(this);
+        mPager = findViewById(R.id.pager);
+        mNextButton = findViewById(R.id.btn_save);
+        mPrevButton = findViewById(R.id.btn_cancel);
+        mStepPagerStrip = findViewById(R.id.strip);
 
         setTitle(getString(R.string.title_setup_gnucash));
 

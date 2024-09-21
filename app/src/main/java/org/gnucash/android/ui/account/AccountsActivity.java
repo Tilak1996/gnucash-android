@@ -66,8 +66,6 @@ import org.gnucash.android.ui.util.TaskDelegate;
 import org.gnucash.android.ui.wizard.FirstRunWizardActivity;
 import org.gnucash.android.util.BackupManager;
 
-import butterknife.BindView;
-
 /**
  * Manages actions related to accounts, displaying, exporting and creating new accounts
  * The various actions are implemented as Fragments which are then added to this activity

@@ -64,9 +64,6 @@ import org.gnucash.android.util.BackupManager;
 
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 /**
  * List Fragment for displaying list of transactions for an account
  * @author Ngewi Fet <ngewif@gmail.com>
@@ -86,7 +83,7 @@ public class TransactionsListFragment extends Fragment implements
 	private boolean mUseCompactView = false;
 
 	private TransactionRecyclerAdapter mTransactionRecyclerAdapter;
-	@BindView(R.id.transaction_recycler_view) EmptyRecyclerView mRecyclerView;
+	private EmptyRecyclerView mRecyclerView;
 
 
 	@Override
@@ -115,7 +112,7 @@ public class TransactionsListFragment extends Fragment implements
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		View view = inflater.inflate(R.layout.fragment_transactions_list, container, false);
-		ButterKnife.bind(this, view);
+		mRecyclerView = view.findViewById(R.id.transaction_recycler_view);
 
 		mRecyclerView.setHasFixedSize(true);
 		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -324,20 +321,25 @@ public class TransactionsListFragment extends Fragment implements
 		}
 
 		public class ViewHolder extends RecyclerView.ViewHolder implements PopupMenu.OnMenuItemClickListener{
-			@BindView(R.id.primary_text) 		public TextView primaryText;
-			@BindView(R.id.secondary_text) 		public TextView secondaryText;
-			@BindView(R.id.transaction_amount)	public TextView transactionAmount;
-			@BindView(R.id.options_menu)		public ImageView optionsMenu;
+			public TextView primaryText;
+			public TextView secondaryText;
+			public TextView transactionAmount;
+			public ImageView optionsMenu;
 
 			//these views are not used in the compact view, hence the nullability
-			@Nullable @BindView(R.id.transaction_date)	public TextView transactionDate;
-			@Nullable @BindView(R.id.edit_transaction)	public ImageView editTransaction;
+			@Nullable public TextView transactionDate;
+			@Nullable public ImageView editTransaction;
 
 			long transactionId;
 
 			public ViewHolder(View itemView) {
 				super(itemView);
-				ButterKnife.bind(this, itemView);
+				primaryText = itemView.findViewById(R.id.primary_text);
+				secondaryText = itemView.findViewById(R.id.secondary_text);
+				transactionAmount = itemView.findViewById(R.id.transaction_amount);
+				optionsMenu = itemView.findViewById(R.id.options_menu);
+				transactionDate = itemView.findViewById(R.id.transaction_date);
+				editTransaction = itemView.findViewById(R.id.edit_transaction);
 				primaryText.setTextSize(18);
 				optionsMenu.setOnClickListener(new View.OnClickListener() {
 					@Override
