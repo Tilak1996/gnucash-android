@@ -579,9 +579,9 @@ public class ExportFormFragment extends Fragment implements
 
 		switch (requestCode){
 			case BackupPreferenceFragment.REQUEST_RESOLVE_CONNECTION:
-				if (resultCode == Activity.RESULT_OK) {
-					BackupPreferenceFragment.mGoogleApiClient.connect();
-				}
+//				if (resultCode == Activity.RESULT_OK) {
+//					BackupPreferenceFragment.mGoogleApiClient.connect();
+//				}
 				break;
 
 			case REQUEST_EXPORT_FILE:

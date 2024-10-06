@@ -80,7 +80,7 @@ public class BackupManager {
             } catch (IOException ex) {
                 Log.e(LOG_TAG, "Auto backup failed for book " + bookUID);
                 ex.printStackTrace();
-                Crashlytics.logException(ex);
+//                Crashlytics.logException(ex);
             }
         }
     }

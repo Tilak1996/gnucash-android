@@ -38,12 +38,12 @@ import android.widget.Toast;
 
 import com.dropbox.core.android.Auth;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.drive.Drive;
-import com.google.android.gms.drive.DriveFolder;
-import com.google.android.gms.drive.MetadataChangeSet;
+//import com.google.android.gms.common.GooglePlayServicesUtil;
+//import com.google.android.gms.common.api.GoogleApiClient;
+//import com.google.android.gms.common.api.ResultCallback;
+//import com.google.android.gms.drive.Drive;
+//import com.google.android.gms.drive.DriveFolder;
+//import com.google.android.gms.drive.MetadataChangeSet;
 
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
@@ -99,7 +99,7 @@ public class BackupPreferenceFragment extends PreferenceFragmentCompat implement
 	/**
 	 * Client for Google Drive Sync
 	 */
-	public static GoogleApiClient mGoogleApiClient;
+//	public static GoogleApiClient mGoogleApiClient;
 
 
 	@Override
@@ -116,7 +116,7 @@ public class BackupPreferenceFragment extends PreferenceFragmentCompat implement
 		actionBar.setDisplayHomeAsUpEnabled(true);
 		actionBar.setTitle(R.string.title_backup_prefs);
 
-		mGoogleApiClient = getGoogleApiClient(getActivity());
+//		mGoogleApiClient = getGoogleApiClient(getActivity());
 		
 	}	
 	
@@ -279,6 +279,7 @@ public class BackupPreferenceFragment extends PreferenceFragmentCompat implement
 	/**
 	 * Toggles synchronization with Google Drive on or off
 	 */
+	/*
 	private void toggleGoogleDriveSync(){
 		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 		final String appFolderId = sharedPreferences.getString(getString(R.string.key_google_drive_app_folder_id), null);
@@ -288,7 +289,7 @@ public class BackupPreferenceFragment extends PreferenceFragmentCompat implement
 		} else {
 			mGoogleApiClient.connect();
 		}
-	}
+	}*/
 
 	/**
 	 * Toggles synchronization with ownCloud on or off
@@ -304,7 +305,7 @@ public class BackupPreferenceFragment extends PreferenceFragmentCompat implement
 		}
 	}
 
-
+	/*
 	public static GoogleApiClient getGoogleApiClient(final Context context) {
 		return new GoogleApiClient.Builder(context)
 				.addApi(Drive.API)
@@ -362,7 +363,7 @@ public class BackupPreferenceFragment extends PreferenceFragmentCompat implement
 					}
 				})
 				.build();
-	}
+	}*/
 
 	/**
 	 * Opens a dialog for a user to select a backup to restore and then restores the backup
@@ -451,7 +452,7 @@ public class BackupPreferenceFragment extends PreferenceFragmentCompat implement
 
 			case REQUEST_RESOLVE_CONNECTION:
 				if (resultCode == Activity.RESULT_OK) {
-					mGoogleApiClient.connect();
+//					mGoogleApiClient.connect();
 					Preference pref = findPreference(getString(R.string.key_dropbox_sync));
 					if (pref == null) //if we are in a preference header fragment, this may return null
 						break;

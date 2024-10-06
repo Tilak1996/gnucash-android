@@ -27,6 +27,7 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Bundle;
 
+import androidx.appcompat.app.ActionBar;
 import androidx.cursoradapter.widget.SimpleCursorAdapter;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -91,15 +92,15 @@ public class AccountFormFragment extends Fragment {
     /**
 	 * EditText for the name of the account to be created/edited
 	 */
-	@BindView(R.id.input_account_name) EditText mNameEditText;
+	private EditText mNameEditText;
 
-    @BindView(R.id.name_text_input_layout) TextInputLayout mTextInputLayout;
+    private TextInputLayout mTextInputLayout;
 
 	/**
 	 * Spinner for selecting the currency of the account
 	 * Currencies listed are those specified by ISO 4217
 	 */
-	@BindView(R.id.input_currency_spinner) Spinner mCurrencySpinner;
+	private Spinner mCurrencySpinner;
 	
 	/**
 	 * Accounts database adapter
@@ -153,39 +154,39 @@ public class AccountFormFragment extends Fragment {
     /**
      * Spinner for parent account list
      */
-	@BindView(R.id.input_parent_account) Spinner mParentAccountSpinner;
+	private Spinner mParentAccountSpinner;
 
     /**
      * Checkbox which activates the parent account spinner when selected
      * Leaving this unchecked means it is a top-level root account
      */
-	@BindView(R.id.checkbox_parent_account) CheckBox mParentCheckBox;
+	private CheckBox mParentCheckBox;
 
     /**
      * Spinner for the account type
      * @see org.gnucash.android.model.AccountType
      */
-    @BindView(R.id.input_account_type_spinner) Spinner mAccountTypeSpinner;
+    private Spinner mAccountTypeSpinner;
 
     /**
      * Checkbox for activating the default transfer account spinner
      */
-    @BindView(R.id.checkbox_default_transfer_account) CheckBox mDefaultTransferAccountCheckBox;
+    private CheckBox mDefaultTransferAccountCheckBox;
 
     /**
      * Spinner for selecting the default transfer account
      */
-    @BindView(R.id.input_default_transfer_account) Spinner mDefaultTransferAccountSpinner;
+    private Spinner mDefaultTransferAccountSpinner;
 
     /**
      * Account description input text view
      */
-    @BindView(R.id.input_account_description) EditText mDescriptionEditText;
+    private EditText mDescriptionEditText;
 
     /**
      * Checkbox indicating if account is a placeholder account
      */
-    @BindView(R.id.checkbox_placeholder_account) CheckBox mPlaceholderCheckBox;
+    private CheckBox mPlaceholderCheckBox;
 
     /**
      * Cursor adapter which binds to the spinner for default transfer account
@@ -202,7 +203,7 @@ public class AccountFormFragment extends Fragment {
     /**
      * Trigger for color picker dialog
      */
-    @BindView(R.id.input_color_picker) ColorSquare mColorSquare;
+    private ColorSquare mColorSquare;
 
     private final ColorPickerSwatch.OnColorSelectedListener mColorSelectedListener =
             new ColorPickerSwatch.OnColorSelectedListener() {
@@ -248,7 +249,17 @@ public class AccountFormFragment extends Fragment {
 	@Override	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		View view = inflater.inflate(R.layout.fragment_account_form, container, false);
-        ButterKnife.bind(this, view);
+        mNameEditText = view.findViewById(R.id.input_account_name);
+        mTextInputLayout = view.findViewById(R.id.name_text_input_layout);
+        mCurrencySpinner = view.findViewById(R.id.input_currency_spinner);
+        mParentAccountSpinner = view.findViewById(R.id.input_parent_account);
+        mParentCheckBox = view.findViewById(R.id.checkbox_parent_account);
+        mAccountTypeSpinner = view.findViewById(R.id.input_account_type_spinner);
+        mDefaultTransferAccountCheckBox = view.findViewById(R.id.checkbox_default_transfer_account);
+        mDefaultTransferAccountSpinner = view.findViewById(R.id.input_default_transfer_account);
+        mDescriptionEditText = view.findViewById(R.id.input_account_description);
+        mPlaceholderCheckBox = view.findViewById(R.id.checkbox_placeholder_account);
+        mColorSquare = view.findViewById(R.id.input_color_picker);
 
         mNameEditText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -716,8 +727,9 @@ public class AccountFormFragment extends Fragment {
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		if (mParentAccountCursor != null)
-			mParentAccountCursor.close();
+		if (mParentAccountCursor != null) {
+            mParentAccountCursor.close();
+        }
         if (mDefaultTransferAccountCursorAdapter != null) {
             mDefaultTransferAccountCursorAdapter.getCursor().close();
         }

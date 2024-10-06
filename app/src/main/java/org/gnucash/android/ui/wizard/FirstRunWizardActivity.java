@@ -265,6 +265,7 @@ public class FirstRunWizardActivity extends AppCompatActivity implements
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode){
             case AccountsActivity.REQUEST_PICK_ACCOUNTS_FILE:
                 if (resultCode == Activity.RESULT_OK && data != null) {
