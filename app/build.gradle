@@ -3,10 +3,10 @@ import java.text.SimpleDateFormat
 apply plugin: 'com.android.application'
 //apply plugin: 'io.fabric'
 
-def versionMajor = 2
-def versionMinor = 4
+def versionMajor = 3
+def versionMinor = 0
 def versionPatch = 0
-def versionBuild = 3
+def versionBuild = 0
 
 static def buildTime() {
     def df = new SimpleDateFormat("yyyyMMdd HH:mm 'UTC'")
