@@ -11,7 +11,7 @@ Accounts            |  Transactions          |  Reports
 :-------------------------:|:-------------------------:|:-------------------------:
 ![Accounts List](docs/images/v2.0.0_home.png)  |  ![Transactions List](docs/images/v2.0.0_transactions_list.png) |  ![Reports](docs/images/v2.0.0_reports.png)
 
-The application supports Android 4.4 KitKat (API level 19) and above.
+The application supports Android 8.1 Oreo (API level 27) and above.
 
 Features include:
 
