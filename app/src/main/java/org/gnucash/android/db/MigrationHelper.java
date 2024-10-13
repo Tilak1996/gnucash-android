@@ -745,7 +745,7 @@ public class MigrationHelper {
                 //cancel existing pending intent
                 Context context = GnuCashApplication.getAppContext();
                 PendingIntent recurringPendingIntent = PendingIntent.getBroadcast(context,
-                        (int)transactionId, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+                        (int)transactionId, intent, PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE);
                 AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
                 alarmManager.cancel(recurringPendingIntent);
             }
@@ -1481,7 +1481,7 @@ public class MigrationHelper {
 
         //cancel the existing pending intent so that the alarm can be rescheduled
         Intent alarmIntent = new Intent(context, ScheduledActionService.class);
-        PendingIntent pendingIntent = PendingIntent.getService(context, 0, alarmIntent, PendingIntent.FLAG_NO_CREATE);
+        PendingIntent pendingIntent = PendingIntent.getService(context, 0, alarmIntent, PendingIntent.FLAG_NO_CREATE | PendingIntent.FLAG_IMMUTABLE);
         if (pendingIntent != null) {
             AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
             alarmManager.cancel(pendingIntent);

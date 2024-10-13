@@ -19,6 +19,7 @@ package org.gnucash.android.ui.account;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -40,6 +41,7 @@ import androidx.viewpager.widget.ViewPager;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 import android.util.Log;
+import android.util.Pair;
 import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -54,7 +56,7 @@ import org.gnucash.android.app.GnuCashApplication;
 import org.gnucash.android.db.DatabaseSchema;
 import org.gnucash.android.db.adapter.AccountsDbAdapter;
 import org.gnucash.android.db.adapter.BooksDbAdapter;
-import org.gnucash.android.importer.ImportAsyncTask;
+import org.gnucash.android.importer.ImportAsyncUtil;
 import org.gnucash.android.ui.common.BaseDrawerActivity;
 import org.gnucash.android.ui.common.FormActivity;
 import org.gnucash.android.ui.common.Refreshable;
@@ -63,6 +65,13 @@ import org.gnucash.android.ui.transaction.TransactionsActivity;
 import org.gnucash.android.ui.util.TaskDelegate;
 import org.gnucash.android.ui.wizard.FirstRunWizardActivity;
 import org.gnucash.android.util.BackupManager;
+
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.annotations.NonNull;
+import io.reactivex.rxjava3.core.SingleObserver;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 /**
  * Manages actions related to accounts, displaying, exporting and creating new accounts
@@ -129,6 +138,7 @@ public class AccountsActivity extends BaseDrawerActivity implements OnAccountCli
     private ViewPager mViewPager;
     private FloatingActionButton mFloatingActionButton;
     private CoordinatorLayout mCoordinatorLayout;
+    private static CompositeDisposable mCompositeDisposable = new CompositeDisposable();
 
     /**
      * Configuration for rating the app
@@ -289,8 +299,29 @@ public class AccountsActivity extends BaseDrawerActivity implements OnAccountCli
         if (data != null){
             BackupManager.backupActiveBook();
             intent.setData(null);
-            new ImportAsyncTask(this).execute(data);
-            removeFirstRunFlag();
+            ProgressDialog progressDialog = ImportAsyncUtil.showProgressDialog(this);
+            ImportAsyncUtil.importDataSingle(this,data)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new SingleObserver<Pair<Boolean,String>>() {
+                        @Override
+                        public void onSubscribe(@NonNull Disposable d) {
+                            mCompositeDisposable.add(d);
+                        }
+
+                        @Override
+                        public void onSuccess(@NonNull Pair<Boolean,String> result) {
+                            ImportAsyncUtil.onTaskComplete(progressDialog, result.first,
+                                    AccountsActivity.this, result.second);
+                            removeFirstRunFlag();
+                        }
+
+                        @Override
+                        public void onError(@NonNull Throwable e) {
+
+                        }
+                    });
+
         }
     }
 
@@ -350,6 +381,7 @@ public class AccountsActivity extends BaseDrawerActivity implements OnAccountCli
         super.onDestroy();
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         preferences.edit().putInt(LAST_OPEN_TAB_INDEX, mViewPager.getCurrentItem()).apply();
+        mCompositeDisposable.clear();
     }
 
     /**
@@ -434,19 +466,33 @@ public class AccountsActivity extends BaseDrawerActivity implements OnAccountCli
      * @param activity Activity for providing context and displaying dialogs
      */
     public static void createDefaultAccounts(final String currencyCode, final Activity activity) {
-        TaskDelegate delegate = null;
-        if (currencyCode != null) {
-            delegate = new TaskDelegate() {
-                @Override
-                public void onTaskComplete() {
-                    AccountsDbAdapter.getInstance().updateAllAccounts(DatabaseSchema.AccountEntry.COLUMN_CURRENCY, currencyCode);
-                    GnuCashApplication.setDefaultCurrencyCode(currencyCode);
-                }
-            };
-        }
-
         Uri uri = Uri.parse("android.resource://" + BuildConfig.APPLICATION_ID + "/" + R.raw.default_accounts);
-        new ImportAsyncTask(activity, delegate).execute(uri);
+        ProgressDialog progressDialog = ImportAsyncUtil.showProgressDialog(activity);
+        ImportAsyncUtil.importDataSingle(activity,uri)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new SingleObserver<Pair<Boolean,String>>() {
+                    @Override
+                    public void onSubscribe(@NonNull Disposable d) {
+                        mCompositeDisposable.add(d);
+                    }
+
+                    @Override
+                    public void onSuccess(@NonNull Pair<Boolean,String> result) {
+                        ImportAsyncUtil.onTaskComplete(progressDialog, result.first,
+                                activity, result.second);
+                        if (currencyCode != null) {
+                            AccountsDbAdapter.getInstance().updateAllAccounts(DatabaseSchema.AccountEntry.COLUMN_CURRENCY, currencyCode);
+                            GnuCashApplication.setDefaultCurrencyCode(currencyCode);
+                        }
+                    }
+
+                    @Override
+                    public void onError(@NonNull Throwable e) {
+
+                    }
+                });
+//        new ImportAsyncTask(activity, delegate).execute(uri);
     }
 
     /**
@@ -501,7 +547,29 @@ public class AccountsActivity extends BaseDrawerActivity implements OnAccountCli
      */
     public static void importXmlFileFromIntent(Activity context, Intent data, TaskDelegate onFinishTask) {
         BackupManager.backupActiveBook();
-        new ImportAsyncTask(context, onFinishTask).execute(data.getData());
+        ProgressDialog progressDialog = ImportAsyncUtil.showProgressDialog(context);
+        ImportAsyncUtil.importDataSingle(context,data.getData())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new SingleObserver<Pair<Boolean,String>>() {
+                    @Override
+                    public void onSubscribe(@NonNull Disposable d) {
+                        mCompositeDisposable.add(d);
+                    }
+
+                    @Override
+                    public void onSuccess(@NonNull Pair<Boolean,String> result) {
+                        ImportAsyncUtil.onTaskComplete(progressDialog, result.first,
+                                context, result.second);
+                        onFinishTask.onTaskComplete();
+                    }
+
+                    @Override
+                    public void onError(@NonNull Throwable e) {
+
+                    }
+                });
+//        new ImportAsyncTask(context, onFinishTask).execute(data.getData());
     }
 
     /**

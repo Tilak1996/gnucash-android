@@ -221,6 +221,8 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
     debugImplementation 'com.facebook.stetho:stetho:1.5.0'
+    implementation "io.reactivex.rxjava3:rxjava:3.1.9"
+    implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
 
     //TODO Butterknife is deprecated. So it needs to be replaced with
     // Android's binding APIs.

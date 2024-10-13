@@ -18,10 +18,10 @@ package org.gnucash.android.ui.settings;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
@@ -33,11 +33,12 @@ import androidx.preference.CheckBoxPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceManager;
 import android.util.Log;
+import android.util.Pair;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import com.dropbox.core.android.Auth;
-import com.google.android.gms.common.ConnectionResult;
+//import com.google.android.gms.common.ConnectionResult;
 //import com.google.android.gms.common.GooglePlayServicesUtil;
 //import com.google.android.gms.common.api.GoogleApiClient;
 //import com.google.android.gms.common.api.ResultCallback;
@@ -49,17 +50,21 @@ import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
 import org.gnucash.android.db.adapter.BooksDbAdapter;
 import org.gnucash.android.export.Exporter;
-import org.gnucash.android.importer.ImportAsyncTask;
+import org.gnucash.android.importer.ImportAsyncUtil;
 import org.gnucash.android.ui.settings.dialog.OwnCloudDialogFragment;
 import org.gnucash.android.util.BackupManager;
 
 import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
+
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.annotations.NonNull;
+import io.reactivex.rxjava3.core.SingleObserver;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 
 /**
@@ -95,6 +100,7 @@ public class BackupPreferenceFragment extends PreferenceFragmentCompat implement
 	 * String for tagging log statements
 	 */
 	public static final String LOG_TAG = "BackupPrefFragment";
+	private CompositeDisposable mCompositeDisposable;
 
 	/**
 	 * Client for Google Drive Sync
@@ -115,6 +121,7 @@ public class BackupPreferenceFragment extends PreferenceFragmentCompat implement
 		actionBar.setHomeButtonEnabled(true);
 		actionBar.setDisplayHomeAsUpEnabled(true);
 		actionBar.setTitle(R.string.title_backup_prefs);
+		mCompositeDisposable = new CompositeDisposable();
 
 //		mGoogleApiClient = getGoogleApiClient(getActivity());
 		
@@ -230,7 +237,11 @@ public class BackupPreferenceFragment extends PreferenceFragmentCompat implement
 		return true;
 	}
 
-
+	@Override
+	public void onDestroyView() {
+		super.onDestroyView();
+		mCompositeDisposable.clear();
+	}
 
 	/**
 	 * Toggles the checkbox of the DropBox Sync preference if a DropBox account is linked
@@ -386,7 +397,28 @@ public class BackupPreferenceFragment extends PreferenceFragmentCompat implement
 					.setPositiveButton(R.string.btn_restore, new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialogInterface, int i) {
-							new ImportAsyncTask(getActivity()).execute(Uri.parse(defaultBackupFile));
+							ProgressDialog progressDialog = ImportAsyncUtil.showProgressDialog(getActivity());
+							ImportAsyncUtil.importDataSingle(getActivity(),Uri.parse(defaultBackupFile))
+									.subscribeOn(Schedulers.io())
+									.observeOn(AndroidSchedulers.mainThread())
+									.subscribe(new SingleObserver<Pair<Boolean,String>>() {
+										@Override
+										public void onSubscribe(@NonNull Disposable d) {
+											mCompositeDisposable.add(d);
+										}
+
+										@Override
+										public void onSuccess(@NonNull Pair<Boolean,String> result) {
+											ImportAsyncUtil.onTaskComplete(progressDialog, result.first,
+													getActivity(), result.second);
+										}
+
+										@Override
+										public void onError(@NonNull Throwable e) {
+
+										}
+									});
+//							new ImportAsyncTask(getActivity()).execute(Uri.parse(defaultBackupFile));
 						}
 					});
 			builder.create().show();
@@ -432,7 +464,28 @@ public class BackupPreferenceFragment extends PreferenceFragmentCompat implement
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				File backupFile = BackupManager.getBackupList(bookUID).get(which);
-				new ImportAsyncTask(getActivity()).execute(Uri.fromFile(backupFile));
+				ProgressDialog progressDialog = ImportAsyncUtil.showProgressDialog(getActivity());
+				ImportAsyncUtil.importDataSingle(getActivity(),Uri.fromFile(backupFile))
+						.subscribeOn(Schedulers.io())
+						.observeOn(AndroidSchedulers.mainThread())
+						.subscribe(new SingleObserver<Pair<Boolean,String>>() {
+							@Override
+							public void onSubscribe(@NonNull Disposable d) {
+								mCompositeDisposable.add(d);
+							}
+
+							@Override
+							public void onSuccess(@NonNull Pair<Boolean,String> result) {
+								ImportAsyncUtil.onTaskComplete(progressDialog, result.first,
+										getActivity(), result.second);
+							}
+
+							@Override
+							public void onError(@NonNull Throwable e) {
+
+							}
+						});
+//				new ImportAsyncTask(getActivity()).execute(Uri.fromFile(backupFile));
 			}
 		});
 
