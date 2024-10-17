@@ -66,14 +66,15 @@
             android:id="@+id/fab_create_transaction"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_above="@id/account_balance_toolbar"
-            android:layout_gravity="end|bottom|right"
-            android:layout_alignParentRight="true"
+            android:layout_gravity="end|bottom"
             android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
             android:layout_margin="20dp"
+            android:contentDescription="Add"
             app:elevation="6dp"
-            app:layout_behavior="org.gnucash.android.ui.util.ScrollingFABBehavior"
             android:src="@drawable/ic_add_white_48dp"/>
+<!--        android:layout_above="@id/account_balance_toolbar"-->
+<!--        app:layout_behavior="org.gnucash.android.ui.util.ScrollingFABBehavior"-->
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
