@@ -46,12 +46,12 @@ import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 
 import org.gnucash.android.R;
-import org.gnucash.android.db.DatabaseSchema;
-import org.gnucash.android.db.adapter.AccountsDbAdapter;
-import org.gnucash.android.db.adapter.BudgetsDbAdapter;
-import org.gnucash.android.model.Budget;
-import org.gnucash.android.model.BudgetAmount;
-import org.gnucash.android.model.Money;
+import org.gnucash.android.model.db.DatabaseSchema;
+import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
+import org.gnucash.android.model.db.adapter.BudgetsDbAdapter;
+import org.gnucash.android.model.data.Budget;
+import org.gnucash.android.model.data.BudgetAmount;
+import org.gnucash.android.model.data.Money;
 import org.gnucash.android.ui.common.FormActivity;
 import org.gnucash.android.ui.common.Refreshable;
 import org.gnucash.android.ui.common.UxArgument;

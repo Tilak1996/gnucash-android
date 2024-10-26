@@ -26,12 +26,12 @@ import androidx.annotation.Nullable;
 import android.util.Log;
 
 import org.gnucash.android.app.GnuCashApplication;
-import org.gnucash.android.db.adapter.BooksDbAdapter;
-import org.gnucash.android.export.ExportFormat;
-import org.gnucash.android.export.ExportParams;
-import org.gnucash.android.export.Exporter;
-import org.gnucash.android.export.xml.GncXmlExporter;
-import org.gnucash.android.model.Book;
+import org.gnucash.android.model.db.adapter.BooksDbAdapter;
+import org.gnucash.android.model.export.ExportFormat;
+import org.gnucash.android.model.export.ExportParams;
+import org.gnucash.android.model.export.Exporter;
+import org.gnucash.android.model.export.xml.GncXmlExporter;
+import org.gnucash.android.model.data.Book;
 import org.gnucash.android.receivers.PeriodicJobReceiver;
 import org.gnucash.android.ui.settings.PreferenceActivity;
 

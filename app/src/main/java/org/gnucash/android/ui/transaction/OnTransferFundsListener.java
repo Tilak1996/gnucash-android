@@ -16,7 +16,7 @@
 
 package org.gnucash.android.ui.transaction;
 
-import org.gnucash.android.model.Money;
+import org.gnucash.android.model.data.Money;
 
 /**
  * Interface to be implemented by classes which start the transfer funds fragment

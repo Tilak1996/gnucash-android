@@ -23,9 +23,8 @@ import android.support.test.rule.GrantPermissionRule;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.gnucash.android.R;
-import org.gnucash.android.db.BookDbHelper;
-import org.gnucash.android.db.adapter.BooksDbAdapter;
-import org.gnucash.android.model.Book;
+import org.gnucash.android.model.db.adapter.BooksDbAdapter;
+import org.gnucash.android.model.data.Book;
 import org.gnucash.android.test.ui.util.DisableAnimationsRule;
 import org.gnucash.android.ui.account.AccountsActivity;
 import org.gnucash.android.ui.settings.PreferenceActivity;

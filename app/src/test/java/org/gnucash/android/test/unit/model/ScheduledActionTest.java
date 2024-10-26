@@ -16,9 +16,9 @@
 
 package org.gnucash.android.test.unit.model;
 
-import org.gnucash.android.model.PeriodType;
-import org.gnucash.android.model.Recurrence;
-import org.gnucash.android.model.ScheduledAction;
+import org.gnucash.android.model.data.PeriodType;
+import org.gnucash.android.model.data.Recurrence;
+import org.gnucash.android.model.data.ScheduledAction;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
 import org.junit.Test;

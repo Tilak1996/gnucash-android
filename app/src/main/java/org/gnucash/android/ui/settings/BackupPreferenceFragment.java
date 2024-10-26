@@ -48,9 +48,9 @@ import com.dropbox.core.android.Auth;
 
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
-import org.gnucash.android.db.adapter.BooksDbAdapter;
-import org.gnucash.android.export.Exporter;
-import org.gnucash.android.importer.ImportAsyncUtil;
+import org.gnucash.android.model.db.adapter.BooksDbAdapter;
+import org.gnucash.android.model.export.Exporter;
+import org.gnucash.android.model.importer.ImportAsyncUtil;
 import org.gnucash.android.ui.settings.dialog.OwnCloudDialogFragment;
 import org.gnucash.android.util.BackupManager;
 

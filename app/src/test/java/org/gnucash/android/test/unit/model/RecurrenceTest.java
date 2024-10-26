@@ -16,8 +16,8 @@
 
 package org.gnucash.android.test.unit.model;
 
-import org.gnucash.android.model.PeriodType;
-import org.gnucash.android.model.Recurrence;
+import org.gnucash.android.model.data.PeriodType;
+import org.gnucash.android.model.data.Recurrence;
 import org.joda.time.DateTime;
 import org.junit.Test;
 

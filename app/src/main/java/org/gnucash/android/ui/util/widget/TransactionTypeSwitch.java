@@ -25,9 +25,9 @@ import android.widget.TextView;
 import androidx.core.content.ContextCompat;
 
 import org.gnucash.android.R;
-import org.gnucash.android.model.AccountType;
-import org.gnucash.android.model.Transaction;
-import org.gnucash.android.model.TransactionType;
+import org.gnucash.android.model.data.AccountType;
+import org.gnucash.android.model.data.Transaction;
+import org.gnucash.android.model.data.TransactionType;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -128,7 +128,7 @@ public class TransactionTypeSwitch extends SwitchCompat {
 
     /**
      * Toggles the button checked based on the movement caused by the transaction type for the specified account
-     * @param transactionType {@link org.gnucash.android.model.TransactionType} of the split
+     * @param transactionType {@link TransactionType} of the split
      */
     public void setChecked(TransactionType transactionType){
         setChecked(Transaction.shouldDecreaseBalance(mAccountType, transactionType));

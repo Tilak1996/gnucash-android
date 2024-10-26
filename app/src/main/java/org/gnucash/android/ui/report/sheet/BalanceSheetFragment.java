@@ -28,10 +28,10 @@ import android.widget.TableLayout;
 import android.widget.TextView;
 
 import org.gnucash.android.R;
-import org.gnucash.android.db.DatabaseSchema;
-import org.gnucash.android.db.adapter.AccountsDbAdapter;
-import org.gnucash.android.model.AccountType;
-import org.gnucash.android.model.Money;
+import org.gnucash.android.model.db.DatabaseSchema;
+import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
+import org.gnucash.android.model.data.AccountType;
+import org.gnucash.android.model.data.Money;
 import org.gnucash.android.ui.report.BaseReportFragment;
 import org.gnucash.android.ui.report.ReportType;
 import org.gnucash.android.ui.transaction.TransactionsActivity;

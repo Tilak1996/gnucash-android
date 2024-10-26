@@ -22,15 +22,15 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
-import org.gnucash.android.db.adapter.CommoditiesDbAdapter;
-import org.gnucash.android.db.adapter.DatabaseAdapter;
-import org.gnucash.android.db.adapter.TransactionsDbAdapter;
-import org.gnucash.android.model.Account;
-import org.gnucash.android.model.Commodity;
-import org.gnucash.android.model.Money;
-import org.gnucash.android.model.Split;
-import org.gnucash.android.model.Transaction;
-import org.gnucash.android.model.TransactionType;
+import org.gnucash.android.model.db.adapter.CommoditiesDbAdapter;
+import org.gnucash.android.model.db.adapter.DatabaseAdapter;
+import org.gnucash.android.model.db.adapter.TransactionsDbAdapter;
+import org.gnucash.android.model.data.Account;
+import org.gnucash.android.model.data.Commodity;
+import org.gnucash.android.model.data.Money;
+import org.gnucash.android.model.data.Split;
+import org.gnucash.android.model.data.Transaction;
+import org.gnucash.android.model.data.TransactionType;
 import org.gnucash.android.ui.homescreen.WidgetConfigurationActivity;
 
 import java.io.BufferedReader;
@@ -48,7 +48,7 @@ import java.math.MathContext;
  * The required permission is "org.gnucash.android.permission.RECORD_TRANSACTION"</p>
  * @author Ngewi Fet <ngewif@gmail.com>
  * @see AccountCreator
- * @see org.gnucash.android.model.Transaction#createIntent(org.gnucash.android.model.Transaction)
+ * @see Transaction#createIntent(Transaction)
  */
 public class TransactionRecorder extends BroadcastReceiver {
 

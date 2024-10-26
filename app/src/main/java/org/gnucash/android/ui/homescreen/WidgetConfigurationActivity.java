@@ -35,20 +35,19 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.ImageButton;
 import android.widget.RemoteViews;
 import android.widget.Spinner;
 import android.widget.Toast;
 
 import org.gnucash.android.R;
-import org.gnucash.android.db.BookDbHelper;
-import org.gnucash.android.db.DatabaseHelper;
-import org.gnucash.android.db.DatabaseSchema;
-import org.gnucash.android.db.adapter.AccountsDbAdapter;
-import org.gnucash.android.db.adapter.BooksDbAdapter;
-import org.gnucash.android.model.Account;
-import org.gnucash.android.model.Book;
-import org.gnucash.android.model.Money;
+import org.gnucash.android.model.db.BookDbHelper;
+import org.gnucash.android.model.db.DatabaseHelper;
+import org.gnucash.android.model.db.DatabaseSchema;
+import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
+import org.gnucash.android.model.db.adapter.BooksDbAdapter;
+import org.gnucash.android.model.data.Account;
+import org.gnucash.android.model.data.Book;
+import org.gnucash.android.model.data.Money;
 import org.gnucash.android.receivers.TransactionAppWidgetProvider;
 import org.gnucash.android.ui.account.AccountsActivity;
 import org.gnucash.android.ui.common.FormActivity;
@@ -58,7 +57,6 @@ import org.gnucash.android.ui.transaction.TransactionsActivity;
 import org.gnucash.android.util.QualifiedAccountNameCursorAdapter;
 
 import java.util.Locale;
-import java.util.prefs.Preferences;
 
 /**
  * Activity for configuration which account to display on a widget.

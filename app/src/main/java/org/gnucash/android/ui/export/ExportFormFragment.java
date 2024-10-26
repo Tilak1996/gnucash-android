@@ -54,16 +54,16 @@ import com.dropbox.core.android.Auth;
 
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
-import org.gnucash.android.db.adapter.BooksDbAdapter;
-import org.gnucash.android.db.adapter.DatabaseAdapter;
-import org.gnucash.android.db.adapter.ScheduledActionDbAdapter;
-import org.gnucash.android.export.DropboxHelper;
-import org.gnucash.android.export.ExportAsyncTask;
-import org.gnucash.android.export.ExportFormat;
-import org.gnucash.android.export.ExportParams;
-import org.gnucash.android.export.Exporter;
-import org.gnucash.android.model.BaseModel;
-import org.gnucash.android.model.ScheduledAction;
+import org.gnucash.android.model.db.adapter.BooksDbAdapter;
+import org.gnucash.android.model.db.adapter.DatabaseAdapter;
+import org.gnucash.android.model.db.adapter.ScheduledActionDbAdapter;
+import org.gnucash.android.model.export.DropboxHelper;
+import org.gnucash.android.model.export.ExportAsyncTask;
+import org.gnucash.android.model.export.ExportFormat;
+import org.gnucash.android.model.export.ExportParams;
+import org.gnucash.android.model.export.Exporter;
+import org.gnucash.android.model.data.BaseModel;
+import org.gnucash.android.model.data.ScheduledAction;
 import org.gnucash.android.ui.common.UxArgument;
 import org.gnucash.android.ui.settings.BackupPreferenceFragment;
 import org.gnucash.android.ui.settings.dialog.OwnCloudDialogFragment;
@@ -82,7 +82,7 @@ import java.util.GregorianCalendar;
 /**
  * Dialog fragment for exporting accounts and transactions in various formats
  * <p>The dialog is used for collecting information on the export options and then passing them
- * to the {@link org.gnucash.android.export.Exporter} responsible for exporting</p>
+ * to the {@link Exporter} responsible for exporting</p>
  * @author Ngewi Fet <ngewif@gmail.com>
  */
 public class ExportFormFragment extends Fragment implements

@@ -24,7 +24,7 @@ import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import org.gnucash.android.R;
-import org.gnucash.android.model.ScheduledAction;
+import org.gnucash.android.model.data.ScheduledAction;
 import org.gnucash.android.ui.common.BaseDrawerActivity;
 
 /**

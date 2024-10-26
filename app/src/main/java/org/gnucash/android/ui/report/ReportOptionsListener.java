@@ -15,7 +15,7 @@
  */
 package org.gnucash.android.ui.report;
 
-import org.gnucash.android.model.AccountType;
+import org.gnucash.android.model.data.AccountType;
 
 /**
  * Listener interface for passing reporting options from activity to the report fragments

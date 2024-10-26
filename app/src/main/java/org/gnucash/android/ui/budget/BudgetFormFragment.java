@@ -45,15 +45,15 @@ import com.codetroopers.betterpickers.recurrencepicker.RecurrencePickerDialogFra
 import com.google.android.material.textfield.TextInputLayout;
 
 import org.gnucash.android.R;
-import org.gnucash.android.db.DatabaseSchema;
-import org.gnucash.android.db.adapter.AccountsDbAdapter;
-import org.gnucash.android.db.adapter.BudgetsDbAdapter;
-import org.gnucash.android.db.adapter.DatabaseAdapter;
-import org.gnucash.android.model.Budget;
-import org.gnucash.android.model.BudgetAmount;
-import org.gnucash.android.model.Commodity;
-import org.gnucash.android.model.Money;
-import org.gnucash.android.model.Recurrence;
+import org.gnucash.android.model.db.DatabaseSchema;
+import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
+import org.gnucash.android.model.db.adapter.BudgetsDbAdapter;
+import org.gnucash.android.model.db.adapter.DatabaseAdapter;
+import org.gnucash.android.model.data.Budget;
+import org.gnucash.android.model.data.BudgetAmount;
+import org.gnucash.android.model.data.Commodity;
+import org.gnucash.android.model.data.Money;
+import org.gnucash.android.model.data.Recurrence;
 import org.gnucash.android.ui.common.FormActivity;
 import org.gnucash.android.ui.common.UxArgument;
 import org.gnucash.android.ui.transaction.TransactionFormFragment;

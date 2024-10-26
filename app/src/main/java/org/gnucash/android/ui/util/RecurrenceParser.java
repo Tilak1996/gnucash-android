@@ -22,8 +22,9 @@ import android.text.format.Time;
 
 import com.codetroopers.betterpickers.recurrencepicker.EventRecurrence;
 
-import org.gnucash.android.model.PeriodType;
-import org.gnucash.android.model.Recurrence;
+import org.gnucash.android.model.data.PeriodType;
+import org.gnucash.android.model.data.Recurrence;
+import org.gnucash.android.model.data.ScheduledAction;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -33,7 +34,7 @@ import java.util.List;
 
 /**
  * Parses {@link EventRecurrence}s to generate
- * {@link org.gnucash.android.model.ScheduledAction}s
+ * {@link ScheduledAction}s
  *
  * @author Ngewi Fet <ngewif@gmail.com>
  */

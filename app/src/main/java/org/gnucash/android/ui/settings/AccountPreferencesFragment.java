@@ -31,14 +31,14 @@ import android.widget.Toast;
 
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
-import org.gnucash.android.db.DatabaseSchema;
-import org.gnucash.android.db.adapter.BooksDbAdapter;
-import org.gnucash.android.db.adapter.CommoditiesDbAdapter;
-import org.gnucash.android.export.ExportAsyncTask;
-import org.gnucash.android.export.ExportFormat;
-import org.gnucash.android.export.ExportParams;
-import org.gnucash.android.export.Exporter;
-import org.gnucash.android.model.Money;
+import org.gnucash.android.model.db.DatabaseSchema;
+import org.gnucash.android.model.db.adapter.BooksDbAdapter;
+import org.gnucash.android.model.db.adapter.CommoditiesDbAdapter;
+import org.gnucash.android.model.export.ExportAsyncTask;
+import org.gnucash.android.model.export.ExportFormat;
+import org.gnucash.android.model.export.ExportParams;
+import org.gnucash.android.model.export.Exporter;
+import org.gnucash.android.model.data.Money;
 import org.gnucash.android.ui.account.AccountsActivity;
 import org.gnucash.android.ui.settings.dialog.DeleteAllAccountsConfirmationDialog;
 

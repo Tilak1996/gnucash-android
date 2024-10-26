@@ -21,8 +21,8 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.TextView;
 
-import org.gnucash.android.db.adapter.AccountsDbAdapter;
-import org.gnucash.android.model.Money;
+import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
+import org.gnucash.android.model.data.Money;
 import org.gnucash.android.ui.transaction.TransactionsActivity;
 
 import java.lang.ref.WeakReference;

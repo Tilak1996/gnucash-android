@@ -16,13 +16,12 @@
 
 package org.gnucash.android.test.unit.export;
 
-import org.gnucash.android.export.xml.GncXmlHelper;
-import org.gnucash.android.model.Commodity;
+import org.gnucash.android.model.export.xml.GncXmlHelper;
+import org.gnucash.android.model.data.Commodity;
 import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
-import java.util.Currency;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

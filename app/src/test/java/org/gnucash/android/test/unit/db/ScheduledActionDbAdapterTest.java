@@ -4,11 +4,11 @@ import android.content.res.Resources;
 
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
-import org.gnucash.android.db.adapter.ScheduledActionDbAdapter;
-import org.gnucash.android.model.BaseModel;
-import org.gnucash.android.model.PeriodType;
-import org.gnucash.android.model.Recurrence;
-import org.gnucash.android.model.ScheduledAction;
+import org.gnucash.android.model.db.adapter.ScheduledActionDbAdapter;
+import org.gnucash.android.model.data.BaseModel;
+import org.gnucash.android.model.data.PeriodType;
+import org.gnucash.android.model.data.Recurrence;
+import org.gnucash.android.model.data.ScheduledAction;
 import org.gnucash.android.test.unit.testutil.ShadowCrashlytics;
 import org.gnucash.android.test.unit.testutil.ShadowUserVoice;
 import org.junit.Before;

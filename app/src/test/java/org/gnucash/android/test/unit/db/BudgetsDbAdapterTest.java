@@ -17,16 +17,16 @@ package org.gnucash.android.test.unit.db;
 
 import androidx.annotation.NonNull;
 
-import org.gnucash.android.db.adapter.AccountsDbAdapter;
-import org.gnucash.android.db.adapter.BudgetAmountsDbAdapter;
-import org.gnucash.android.db.adapter.BudgetsDbAdapter;
-import org.gnucash.android.db.adapter.RecurrenceDbAdapter;
-import org.gnucash.android.model.Account;
-import org.gnucash.android.model.Budget;
-import org.gnucash.android.model.BudgetAmount;
-import org.gnucash.android.model.Money;
-import org.gnucash.android.model.PeriodType;
-import org.gnucash.android.model.Recurrence;
+import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
+import org.gnucash.android.model.db.adapter.BudgetAmountsDbAdapter;
+import org.gnucash.android.model.db.adapter.BudgetsDbAdapter;
+import org.gnucash.android.model.db.adapter.RecurrenceDbAdapter;
+import org.gnucash.android.model.data.Account;
+import org.gnucash.android.model.data.Budget;
+import org.gnucash.android.model.data.BudgetAmount;
+import org.gnucash.android.model.data.Money;
+import org.gnucash.android.model.data.PeriodType;
+import org.gnucash.android.model.data.Recurrence;
 import org.gnucash.android.test.unit.testutil.ShadowCrashlytics;
 import org.gnucash.android.test.unit.testutil.ShadowUserVoice;
 import org.junit.After;

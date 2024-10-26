@@ -36,11 +36,11 @@ import android.widget.TextView;
 import com.google.android.material.textfield.TextInputLayout;
 
 import org.gnucash.android.R;
-import org.gnucash.android.db.adapter.CommoditiesDbAdapter;
-import org.gnucash.android.db.adapter.PricesDbAdapter;
-import org.gnucash.android.model.Commodity;
-import org.gnucash.android.model.Money;
-import org.gnucash.android.model.Price;
+import org.gnucash.android.model.db.adapter.CommoditiesDbAdapter;
+import org.gnucash.android.model.db.adapter.PricesDbAdapter;
+import org.gnucash.android.model.data.Commodity;
+import org.gnucash.android.model.data.Money;
+import org.gnucash.android.model.data.Price;
 import org.gnucash.android.ui.transaction.OnTransferFundsListener;
 import org.gnucash.android.ui.transaction.TransactionsActivity;
 import org.gnucash.android.util.AmountParser;

@@ -27,7 +27,7 @@ import androidx.fragment.app.ListFragment;
 import com.tech.freak.wizardpager.ui.PageFragmentCallbacks;
 
 import org.gnucash.android.R;
-import org.gnucash.android.db.adapter.CommoditiesDbAdapter;
+import org.gnucash.android.model.db.adapter.CommoditiesDbAdapter;
 import org.gnucash.android.util.CommoditiesCursorAdapter;
 
 /**

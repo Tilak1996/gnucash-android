@@ -47,16 +47,16 @@ import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
 
 import org.gnucash.android.R;
-import org.gnucash.android.db.DatabaseSchema;
-import org.gnucash.android.db.adapter.AccountsDbAdapter;
-import org.gnucash.android.db.adapter.CommoditiesDbAdapter;
-import org.gnucash.android.model.AccountType;
-import org.gnucash.android.model.BaseModel;
-import org.gnucash.android.model.Commodity;
-import org.gnucash.android.model.Money;
-import org.gnucash.android.model.Split;
-import org.gnucash.android.model.Transaction;
-import org.gnucash.android.model.TransactionType;
+import org.gnucash.android.model.db.DatabaseSchema;
+import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
+import org.gnucash.android.model.db.adapter.CommoditiesDbAdapter;
+import org.gnucash.android.model.data.AccountType;
+import org.gnucash.android.model.data.BaseModel;
+import org.gnucash.android.model.data.Commodity;
+import org.gnucash.android.model.data.Money;
+import org.gnucash.android.model.data.Split;
+import org.gnucash.android.model.data.Transaction;
+import org.gnucash.android.model.data.TransactionType;
 import org.gnucash.android.ui.common.FormActivity;
 import org.gnucash.android.ui.common.UxArgument;
 import org.gnucash.android.ui.transaction.dialog.TransferFundsDialogFragment;
@@ -383,8 +383,8 @@ public class SplitEditorFragment extends Fragment {
     }
 
     /**
-     * Extracts the input from the views and builds {@link org.gnucash.android.model.Split}s to correspond to the input.
-     * @return List of {@link org.gnucash.android.model.Split}s represented in the view
+     * Extracts the input from the views and builds {@link Split}s to correspond to the input.
+     * @return List of {@link Split}s represented in the view
      */
     private ArrayList<Split> extractSplitsFromView(){
         ArrayList<Split> splitList = new ArrayList<>();

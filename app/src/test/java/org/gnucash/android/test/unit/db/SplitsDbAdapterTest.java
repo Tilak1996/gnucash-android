@@ -17,14 +17,14 @@ package org.gnucash.android.test.unit.db;
 
 import android.database.sqlite.SQLiteException;
 
-import org.gnucash.android.db.DatabaseSchema;
-import org.gnucash.android.db.adapter.AccountsDbAdapter;
-import org.gnucash.android.db.adapter.SplitsDbAdapter;
-import org.gnucash.android.db.adapter.TransactionsDbAdapter;
-import org.gnucash.android.model.Account;
-import org.gnucash.android.model.Money;
-import org.gnucash.android.model.Split;
-import org.gnucash.android.model.Transaction;
+import org.gnucash.android.model.db.DatabaseSchema;
+import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
+import org.gnucash.android.model.db.adapter.SplitsDbAdapter;
+import org.gnucash.android.model.db.adapter.TransactionsDbAdapter;
+import org.gnucash.android.model.data.Account;
+import org.gnucash.android.model.data.Money;
+import org.gnucash.android.model.data.Split;
+import org.gnucash.android.model.data.Transaction;
 import org.gnucash.android.test.unit.testutil.ShadowCrashlytics;
 import org.gnucash.android.test.unit.testutil.ShadowUserVoice;
 import org.junit.After;

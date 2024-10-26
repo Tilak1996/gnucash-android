@@ -16,8 +16,8 @@
 
 package org.gnucash.android.test.unit.model;
 
-import org.gnucash.android.model.Commodity;
-import org.gnucash.android.model.Money;
+import org.gnucash.android.model.data.Commodity;
+import org.gnucash.android.model.data.Money;
 import org.gnucash.android.test.unit.testutil.ShadowCrashlytics;
 import org.gnucash.android.test.unit.testutil.ShadowUserVoice;
 import org.junit.Before;

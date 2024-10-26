@@ -22,7 +22,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 
 import org.gnucash.android.R;
-import org.gnucash.android.db.adapter.BooksDbAdapter;
+import org.gnucash.android.model.db.adapter.BooksDbAdapter;
 import org.gnucash.android.ui.common.Refreshable;
 import org.gnucash.android.util.BackupManager;
 

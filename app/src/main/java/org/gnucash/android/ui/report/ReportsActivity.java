@@ -39,8 +39,8 @@ import android.widget.Spinner;
 
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
-import org.gnucash.android.db.adapter.TransactionsDbAdapter;
-import org.gnucash.android.model.AccountType;
+import org.gnucash.android.model.db.adapter.TransactionsDbAdapter;
+import org.gnucash.android.model.data.AccountType;
 import org.gnucash.android.ui.common.BaseDrawerActivity;
 import org.gnucash.android.ui.common.Refreshable;
 import org.gnucash.android.ui.util.dialog.DateRangePickerDialogFragment;

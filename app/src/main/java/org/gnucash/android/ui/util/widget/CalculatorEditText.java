@@ -35,7 +35,7 @@ import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
 
 import org.gnucash.android.R;
-import org.gnucash.android.model.Commodity;
+import org.gnucash.android.model.data.Commodity;
 import org.gnucash.android.ui.common.FormActivity;
 import org.gnucash.android.util.AmountParser;
 

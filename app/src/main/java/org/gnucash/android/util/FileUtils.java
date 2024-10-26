@@ -3,8 +3,6 @@ package org.gnucash.android.util;
 import androidx.annotation.NonNull;
 import android.util.Log;
 
-import org.gnucash.android.export.ExportAsyncTask;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;

@@ -16,7 +16,7 @@
 
 package org.gnucash.android.test.unit.model;
 
-import org.gnucash.android.model.Price;
+import org.gnucash.android.model.data.Price;
 import org.junit.Test;
 
 import java.math.BigDecimal;

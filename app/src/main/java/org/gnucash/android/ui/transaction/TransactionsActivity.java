@@ -46,11 +46,11 @@ import android.widget.TextView;
 
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
-import org.gnucash.android.db.DatabaseSchema;
-import org.gnucash.android.db.adapter.AccountsDbAdapter;
-import org.gnucash.android.db.adapter.TransactionsDbAdapter;
-import org.gnucash.android.model.Account;
-import org.gnucash.android.model.Money;
+import org.gnucash.android.model.db.DatabaseSchema;
+import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
+import org.gnucash.android.model.db.adapter.TransactionsDbAdapter;
+import org.gnucash.android.model.data.Account;
+import org.gnucash.android.model.data.Money;
 import org.gnucash.android.ui.account.AccountsActivity;
 import org.gnucash.android.ui.account.AccountsListFragment;
 import org.gnucash.android.ui.account.OnAccountClickedListener;
@@ -483,7 +483,7 @@ public class TransactionsActivity extends BaseDrawerActivity implements
     /**
      * Display the balance of a transaction in a text view and format the text color to match the sign of the amount
      * @param balanceTextView {@link android.widget.TextView} where balance is to be displayed
-     * @param balance {@link org.gnucash.android.model.Money} balance to display
+     * @param balance {@link Money} balance to display
      */
     public static void displayBalance(TextView balanceTextView, Money balance){
         balanceTextView.setText(balance.formattedString());

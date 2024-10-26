@@ -15,7 +15,7 @@
  */
 package org.gnucash.android.test.unit.db;
 
-import org.gnucash.android.db.MigrationHelper;
+import org.gnucash.android.model.db.MigrationHelper;
 import org.gnucash.android.test.unit.testutil.ShadowCrashlytics;
 import org.gnucash.android.test.unit.testutil.ShadowUserVoice;
 import org.gnucash.android.util.TimestampHelper;

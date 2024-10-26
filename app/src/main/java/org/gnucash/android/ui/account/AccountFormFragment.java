@@ -56,14 +56,14 @@ import android.widget.Spinner;
 import com.google.android.material.textfield.TextInputLayout;
 
 import org.gnucash.android.R;
-import org.gnucash.android.db.DatabaseSchema;
-import org.gnucash.android.db.adapter.AccountsDbAdapter;
-import org.gnucash.android.db.adapter.CommoditiesDbAdapter;
-import org.gnucash.android.db.adapter.DatabaseAdapter;
-import org.gnucash.android.model.Account;
-import org.gnucash.android.model.AccountType;
-import org.gnucash.android.model.Commodity;
-import org.gnucash.android.model.Money;
+import org.gnucash.android.model.db.DatabaseSchema;
+import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
+import org.gnucash.android.model.db.adapter.CommoditiesDbAdapter;
+import org.gnucash.android.model.db.adapter.DatabaseAdapter;
+import org.gnucash.android.model.data.Account;
+import org.gnucash.android.model.data.AccountType;
+import org.gnucash.android.model.data.Commodity;
+import org.gnucash.android.model.data.Money;
 import org.gnucash.android.ui.colorpicker.ColorPickerDialog;
 import org.gnucash.android.ui.colorpicker.ColorPickerSwatch;
 import org.gnucash.android.ui.colorpicker.ColorSquare;
@@ -164,7 +164,7 @@ public class AccountFormFragment extends Fragment {
 
     /**
      * Spinner for the account type
-     * @see org.gnucash.android.model.AccountType
+     * @see AccountType
      */
     private Spinner mAccountTypeSpinner;
 
@@ -639,8 +639,8 @@ public class AccountFormFragment extends Fragment {
 
     /**
      * Returns a comma separated list of account types which can be parent accounts for the specified <code>type</code>.
-     * The strings in the list are the {@link org.gnucash.android.model.AccountType#name()}s of the different types.
-     * @param type {@link org.gnucash.android.model.AccountType}
+     * The strings in the list are the {@link AccountType#name()}s of the different types.
+     * @param type {@link AccountType}
      * @return String comma separated list of account types
      */
     private String getAllowedParentAccountTypes(AccountType type) {
@@ -681,7 +681,7 @@ public class AccountFormFragment extends Fragment {
     }
 
     /**
-     * Returns a list of all the available {@link org.gnucash.android.model.AccountType}s as strings
+     * Returns a list of all the available {@link AccountType}s as strings
      * @return String list of all account types
      */
     private List<String> getAccountTypeStringList(){
@@ -844,7 +844,7 @@ public class AccountFormFragment extends Fragment {
 
     /**
      * Returns the currently selected account type in the spinner
-     * @return {@link org.gnucash.android.model.AccountType} currently selected
+     * @return {@link AccountType} currently selected
      */
     private AccountType getSelectedAccountType() {
         int selectedAccountTypeIndex = mAccountTypeSpinner.getSelectedItemPosition();

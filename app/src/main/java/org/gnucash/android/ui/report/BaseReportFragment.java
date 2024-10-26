@@ -38,9 +38,9 @@ import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
-import org.gnucash.android.db.adapter.CommoditiesDbAdapter;
-import org.gnucash.android.model.AccountType;
-import org.gnucash.android.model.Commodity;
+import org.gnucash.android.model.db.adapter.CommoditiesDbAdapter;
+import org.gnucash.android.model.data.AccountType;
+import org.gnucash.android.model.data.Commodity;
 import org.gnucash.android.ui.common.Refreshable;
 import org.joda.time.LocalDateTime;
 import org.joda.time.Months;

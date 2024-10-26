@@ -16,9 +16,9 @@
 
 package org.gnucash.android.test.unit.model;
 
-import org.gnucash.android.model.Budget;
-import org.gnucash.android.model.BudgetAmount;
-import org.gnucash.android.model.Money;
+import org.gnucash.android.model.data.Budget;
+import org.gnucash.android.model.data.BudgetAmount;
+import org.gnucash.android.model.data.Money;
 import org.junit.Test;
 
 import java.util.ArrayList;

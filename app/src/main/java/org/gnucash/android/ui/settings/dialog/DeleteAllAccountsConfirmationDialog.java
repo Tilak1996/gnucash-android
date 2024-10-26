@@ -23,7 +23,7 @@ import android.os.Bundle;
 import android.widget.Toast;
 
 import org.gnucash.android.R;
-import org.gnucash.android.db.adapter.AccountsDbAdapter;
+import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
 import org.gnucash.android.ui.homescreen.WidgetConfigurationActivity;
 import org.gnucash.android.util.BackupManager;
 
