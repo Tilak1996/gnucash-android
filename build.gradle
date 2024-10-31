@@ -11,7 +11,12 @@ buildscript {
 //		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 //		classpath 'io.fabric.tools:gradle:1.25.1'
 		classpath 'com.stanfy.spoon:spoon-gradle-plugin:1.2.2'
+		classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0'
 	}
+}
+
+plugins {
+	id 'com.google.dagger.hilt.android' version '2.51.1' apply false
 }
 
 allprojects {
