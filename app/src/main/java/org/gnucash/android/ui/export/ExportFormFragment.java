@@ -79,12 +79,17 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
+
 /**
  * Dialog fragment for exporting accounts and transactions in various formats
  * <p>The dialog is used for collecting information on the export options and then passing them
  * to the {@link Exporter} responsible for exporting</p>
  * @author Ngewi Fet <ngewif@gmail.com>
  */
+@AndroidEntryPoint
 public class ExportFormFragment extends Fragment implements
 		RecurrencePickerDialogFragment.OnRecurrenceSetListener,
 		CalendarDatePickerDialogFragment.OnDateSetListener,
@@ -144,6 +149,8 @@ public class ExportFormFragment extends Fragment implements
 	private LinearLayout mCsvOptionsLayout;
 
 	private View mRecurrenceOptionsView;
+	@Inject
+	DropboxHelper mDropboxHelper;
 	/**
 	 * Event recurrence options
 	 */
@@ -299,7 +306,7 @@ public class ExportFormFragment extends Fragment implements
 	@Override
 	public void onResume() {
 		super.onResume();
-		DropboxHelper.retrieveAndSaveToken();
+		mDropboxHelper.retrieveAndSaveToken();
 	}
 
 	@Override
@@ -384,7 +391,7 @@ public class ExportFormFragment extends Fragment implements
 						String dropboxAppKey = getString(R.string.dropbox_app_key, BackupPreferenceFragment.DROPBOX_APP_KEY);
 						String dropboxAppSecret = getString(R.string.dropbox_app_secret, BackupPreferenceFragment.DROPBOX_APP_SECRET);
 
-						if (!DropboxHelper.hasToken()) {
+						if (!mDropboxHelper.hasToken()) {
 							Auth.startOAuth2Authentication(getActivity(), dropboxAppKey);
 						}
 						break;

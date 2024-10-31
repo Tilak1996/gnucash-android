@@ -45,6 +45,8 @@ import com.owncloud.android.lib.resources.files.UploadRemoteFileOperation;
 
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
+import org.gnucash.android.di.GnuCashEntryPoint;
+import org.gnucash.android.model.Repository;
 import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
 import org.gnucash.android.model.db.adapter.DatabaseAdapter;
 import org.gnucash.android.model.db.adapter.SplitsDbAdapter;
@@ -69,6 +71,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+
+import dagger.hilt.android.EntryPointAccessors;
 
 /**
  * Asynchronous task for exporting transactions.
@@ -100,10 +104,13 @@ public class ExportAsyncTask extends AsyncTask<ExportParams, Void, Boolean> {
     private List<String> mExportedFiles = Collections.emptyList();
 
     private Exporter mExporter;
+    private DropboxHelper mDropboxHelper;
 
     public ExportAsyncTask(Context context, SQLiteDatabase db){
         this.mContext = context;
         this.mDb = db;
+        GnuCashEntryPoint entryPoint = EntryPointAccessors.fromApplication(mContext, GnuCashEntryPoint.class);
+        mDropboxHelper = entryPoint.dropBoxHelper();
     }
 
     @Override
@@ -343,7 +350,7 @@ public class ExportAsyncTask extends AsyncTask<ExportParams, Void, Boolean> {
     private void moveExportToDropbox() {
         Log.i(TAG, "Uploading exported files to DropBox");
 
-        DbxClientV2 dbxClient = DropboxHelper.getClient();
+        DbxClientV2 dbxClient = mDropboxHelper.getClient();
 
         for (String exportedFilePath : mExportedFiles) {
             File exportedFile = new File(exportedFilePath);

@@ -40,12 +40,15 @@ import org.gnucash.android.ui.transaction.TransactionFormFragment;
 import org.gnucash.android.ui.util.widget.CalculatorKeyboard;
 import org.gnucash.android.util.BookUtils;
 
+import dagger.hilt.android.AndroidEntryPoint;
+
 /**
  * Activity for displaying forms in the application.
  * The activity provides the standard close button, but it is up to the form fragments to display
  * menu options (e.g. for saving etc)
  * @author Ngewi Fet <ngewif@gmail.com>
  */
+@AndroidEntryPoint
 public class FormActivity extends PasscodeLockActivity {
 
     private String mAccountUID;

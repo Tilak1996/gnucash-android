@@ -18,7 +18,7 @@ class Repository @Inject constructor(
      */
     fun activateBook(bookUID: String) {
         booksDbAdapter.setActive(bookUID)
-        GnuCashApplication.initializeDatabaseAdapters(context)
+        GnuCashApplication.initializeDatabaseAdapters()
     }
 
     /**
