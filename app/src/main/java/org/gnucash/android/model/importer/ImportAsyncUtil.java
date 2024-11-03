@@ -1,7 +1,6 @@
 package org.gnucash.android.model.importer;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -14,7 +13,6 @@ import android.widget.Toast;
 import org.gnucash.android.R;
 import org.gnucash.android.model.db.DatabaseSchema;
 import org.gnucash.android.model.db.adapter.BooksDbAdapter;
-import org.gnucash.android.util.BookUtils;
 
 import java.io.InputStream;
 
@@ -26,19 +24,6 @@ import io.reactivex.rxjava3.core.SingleOnSubscribe;
 public class ImportAsyncUtil {
 
     private static final String TAG = ImportAsyncUtil.class.getName();
-
-    public static ProgressDialog showProgressDialog(Activity mContext) {
-        ProgressDialog mProgressDialog = new ProgressDialog(mContext);
-        mProgressDialog.setTitle(R.string.title_progress_importing_accounts);
-        mProgressDialog.setIndeterminate(true);
-        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        mProgressDialog.show();
-
-        //these methods must be called after progressDialog.show()
-        mProgressDialog.setProgressNumberFormat(null);
-        mProgressDialog.setProgressPercentFormat(null);
-        return mProgressDialog;
-    }
 
     public static Single<Pair<Boolean,String>> importDataSingle(Activity mContext, Uri... uris) {
         return Single.create(new SingleOnSubscribe<Pair<Boolean,String>>() {
@@ -89,24 +74,5 @@ public class ImportAsyncUtil {
                 emitter.onSuccess(new Pair<>(true,mImportedBookUID));
             }
         });
-    }
-
-    public static void onTaskComplete(ProgressDialog mProgressDialog, boolean importSuccess,
-                               Context mContext, String mImportedBookUID) {
-        try {
-            if (mProgressDialog.isShowing())
-                mProgressDialog.dismiss();
-        } catch (IllegalArgumentException ex){
-            //TODO: This is a hack to catch "View not attached to window" exceptions
-            //FIXME by moving the creation and display of the progress dialog to the Fragment
-        } finally {
-            mProgressDialog = null;
-        }
-
-        int message = importSuccess ? R.string.toast_success_importing_accounts : R.string.toast_error_importing_accounts;
-        Toast.makeText(mContext, message, Toast.LENGTH_SHORT).show();
-
-        if (mImportedBookUID != null)
-            BookUtils.loadBook(mImportedBookUID);
     }
 }

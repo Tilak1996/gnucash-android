@@ -53,6 +53,7 @@ import org.gnucash.android.model.export.Exporter;
 import org.gnucash.android.model.importer.ImportAsyncUtil;
 import org.gnucash.android.ui.settings.dialog.OwnCloudDialogFragment;
 import org.gnucash.android.util.BackupManager;
+import org.gnucash.android.util.BookUtils;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -397,7 +398,7 @@ public class BackupPreferenceFragment extends PreferenceFragmentCompat implement
 					.setPositiveButton(R.string.btn_restore, new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialogInterface, int i) {
-							ProgressDialog progressDialog = ImportAsyncUtil.showProgressDialog(getActivity());
+							ProgressDialog progressDialog = new ProgressDialog(getActivity());
 							ImportAsyncUtil.importDataSingle(getActivity(),Uri.parse(defaultBackupFile))
 									.subscribeOn(Schedulers.io())
 									.observeOn(AndroidSchedulers.mainThread())
@@ -405,12 +406,27 @@ public class BackupPreferenceFragment extends PreferenceFragmentCompat implement
 										@Override
 										public void onSubscribe(@NonNull Disposable d) {
 											mCompositeDisposable.add(d);
+
+											progressDialog.setTitle(R.string.title_progress_importing_accounts);
+											progressDialog.setIndeterminate(true);
+											progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+											progressDialog.show();
+
+											//these methods must be called after progressDialog.show()
+											progressDialog.setProgressNumberFormat(null);
+											progressDialog.setProgressPercentFormat(null);
 										}
 
 										@Override
 										public void onSuccess(@NonNull Pair<Boolean,String> result) {
-											ImportAsyncUtil.onTaskComplete(progressDialog, result.first,
-													getActivity(), result.second);
+											if (progressDialog.isShowing())
+												progressDialog.dismiss();
+
+											int message = result.first ? R.string.toast_success_importing_accounts : R.string.toast_error_importing_accounts;
+											Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+
+											if (result.second != null)
+												BookUtils.loadBook(result.second);
 										}
 
 										@Override
@@ -464,7 +480,7 @@ public class BackupPreferenceFragment extends PreferenceFragmentCompat implement
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				File backupFile = BackupManager.getBackupList(bookUID).get(which);
-				ProgressDialog progressDialog = ImportAsyncUtil.showProgressDialog(getActivity());
+				ProgressDialog progressDialog = new ProgressDialog(getActivity());
 				ImportAsyncUtil.importDataSingle(getActivity(),Uri.fromFile(backupFile))
 						.subscribeOn(Schedulers.io())
 						.observeOn(AndroidSchedulers.mainThread())
@@ -472,12 +488,27 @@ public class BackupPreferenceFragment extends PreferenceFragmentCompat implement
 							@Override
 							public void onSubscribe(@NonNull Disposable d) {
 								mCompositeDisposable.add(d);
+
+								progressDialog.setTitle(R.string.title_progress_importing_accounts);
+								progressDialog.setIndeterminate(true);
+								progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+								progressDialog.show();
+
+								//these methods must be called after progressDialog.show()
+								progressDialog.setProgressNumberFormat(null);
+								progressDialog.setProgressPercentFormat(null);
 							}
 
 							@Override
 							public void onSuccess(@NonNull Pair<Boolean,String> result) {
-								ImportAsyncUtil.onTaskComplete(progressDialog, result.first,
-										getActivity(), result.second);
+								if (progressDialog.isShowing())
+									progressDialog.dismiss();
+
+								int message = result.first ? R.string.toast_success_importing_accounts : R.string.toast_error_importing_accounts;
+								Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+
+								if (result.second != null)
+									BookUtils.loadBook(result.second);
 							}
 
 							@Override

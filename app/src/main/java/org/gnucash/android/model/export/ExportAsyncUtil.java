@@ -18,14 +18,12 @@
 package org.gnucash.android.model.export;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ResolveInfo;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import androidx.annotation.NonNull;
 import androidx.core.content.FileProvider;
@@ -56,9 +54,6 @@ import org.gnucash.android.model.export.ofx.OfxExporter;
 import org.gnucash.android.model.export.qif.QifExporter;
 import org.gnucash.android.model.export.xml.GncXmlExporter;
 import org.gnucash.android.model.data.Transaction;
-import org.gnucash.android.ui.account.AccountsActivity;
-import org.gnucash.android.ui.account.AccountsListFragment;
-import org.gnucash.android.ui.transaction.TransactionsActivity;
 import org.gnucash.android.util.BackupManager;
 
 import java.io.File;

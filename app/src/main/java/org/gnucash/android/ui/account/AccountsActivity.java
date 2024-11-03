@@ -65,6 +65,7 @@ import org.gnucash.android.ui.transaction.TransactionsActivity;
 import org.gnucash.android.ui.util.TaskDelegate;
 import org.gnucash.android.ui.wizard.FirstRunWizardActivity;
 import org.gnucash.android.util.BackupManager;
+import org.gnucash.android.util.BookUtils;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.annotations.NonNull;
@@ -299,7 +300,7 @@ public class AccountsActivity extends BaseDrawerActivity implements OnAccountCli
         if (data != null){
             BackupManager.backupActiveBook();
             intent.setData(null);
-            ProgressDialog progressDialog = ImportAsyncUtil.showProgressDialog(this);
+            ProgressDialog progressDialog = new ProgressDialog(this);
             ImportAsyncUtil.importDataSingle(this,data)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
@@ -307,12 +308,27 @@ public class AccountsActivity extends BaseDrawerActivity implements OnAccountCli
                         @Override
                         public void onSubscribe(@NonNull Disposable d) {
                             mCompositeDisposable.add(d);
+
+                            progressDialog.setTitle(R.string.title_progress_importing_accounts);
+                            progressDialog.setIndeterminate(true);
+                            progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                            progressDialog.show();
+
+                            //these methods must be called after progressDialog.show()
+                            progressDialog.setProgressNumberFormat(null);
+                            progressDialog.setProgressPercentFormat(null);
                         }
 
                         @Override
                         public void onSuccess(@NonNull Pair<Boolean,String> result) {
-                            ImportAsyncUtil.onTaskComplete(progressDialog, result.first,
-                                    AccountsActivity.this, result.second);
+                            if (progressDialog.isShowing())
+                                progressDialog.dismiss();
+
+                            int message = result.first ? R.string.toast_success_importing_accounts : R.string.toast_error_importing_accounts;
+                            Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+
+                            if (result.second != null)
+                                BookUtils.loadBook(result.second);
                             removeFirstRunFlag();
                         }
 
@@ -467,7 +483,7 @@ public class AccountsActivity extends BaseDrawerActivity implements OnAccountCli
      */
     public static void createDefaultAccounts(final String currencyCode, final Activity activity) {
         Uri uri = Uri.parse("android.resource://" + BuildConfig.APPLICATION_ID + "/" + R.raw.default_accounts);
-        ProgressDialog progressDialog = ImportAsyncUtil.showProgressDialog(activity);
+        ProgressDialog progressDialog = new ProgressDialog(activity);
         ImportAsyncUtil.importDataSingle(activity,uri)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -475,12 +491,28 @@ public class AccountsActivity extends BaseDrawerActivity implements OnAccountCli
                     @Override
                     public void onSubscribe(@NonNull Disposable d) {
                         mCompositeDisposable.add(d);
+
+                        progressDialog.setTitle(R.string.title_progress_importing_accounts);
+                        progressDialog.setIndeterminate(true);
+                        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                        progressDialog.show();
+
+                        //these methods must be called after progressDialog.show()
+                        progressDialog.setProgressNumberFormat(null);
+                        progressDialog.setProgressPercentFormat(null);
                     }
 
                     @Override
                     public void onSuccess(@NonNull Pair<Boolean,String> result) {
-                        ImportAsyncUtil.onTaskComplete(progressDialog, result.first,
-                                activity, result.second);
+                        if (progressDialog.isShowing())
+                            progressDialog.dismiss();
+
+                        int message = result.first ? R.string.toast_success_importing_accounts : R.string.toast_error_importing_accounts;
+                        Toast.makeText(activity, message, Toast.LENGTH_SHORT).show();
+
+                        if (result.second != null)
+                            BookUtils.loadBook(result.second);
+
                         if (currencyCode != null) {
                             AccountsDbAdapter.getInstance().updateAllAccounts(DatabaseSchema.AccountEntry.COLUMN_CURRENCY, currencyCode);
                             GnuCashApplication.setDefaultCurrencyCode(currencyCode);
@@ -547,7 +579,7 @@ public class AccountsActivity extends BaseDrawerActivity implements OnAccountCli
      */
     public static void importXmlFileFromIntent(Activity context, Intent data, TaskDelegate onFinishTask) {
         BackupManager.backupActiveBook();
-        ProgressDialog progressDialog = ImportAsyncUtil.showProgressDialog(context);
+        ProgressDialog progressDialog = new ProgressDialog(context);
         ImportAsyncUtil.importDataSingle(context,data.getData())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -555,12 +587,28 @@ public class AccountsActivity extends BaseDrawerActivity implements OnAccountCli
                     @Override
                     public void onSubscribe(@NonNull Disposable d) {
                         mCompositeDisposable.add(d);
+
+                        progressDialog.setTitle(R.string.title_progress_importing_accounts);
+                        progressDialog.setIndeterminate(true);
+                        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                        progressDialog.show();
+
+                        //these methods must be called after progressDialog.show()
+                        progressDialog.setProgressNumberFormat(null);
+                        progressDialog.setProgressPercentFormat(null);
                     }
 
                     @Override
                     public void onSuccess(@NonNull Pair<Boolean,String> result) {
-                        ImportAsyncUtil.onTaskComplete(progressDialog, result.first,
-                                context, result.second);
+                        if (progressDialog.isShowing())
+                            progressDialog.dismiss();
+
+                        int message = result.first ? R.string.toast_success_importing_accounts : R.string.toast_error_importing_accounts;
+                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+
+                        if (result.second != null)
+                            BookUtils.loadBook(result.second);
+
                         if(onFinishTask != null) {
                             onFinishTask.onTaskComplete();
                         }
