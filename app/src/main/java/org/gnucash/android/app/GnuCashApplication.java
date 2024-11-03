@@ -54,12 +54,15 @@ import org.gnucash.android.ui.settings.PreferenceActivity;
 import java.util.Currency;
 import java.util.Locale;
 
+import dagger.hilt.android.HiltAndroidApp;
+
 
 /**
  * An {@link Application} subclass for retrieving static context
  * @author Ngewi Fet <ngewif@gmail.com>
  *
  */
+@HiltAndroidApp
 public class GnuCashApplication extends MultiDexApplication {
 
     /**

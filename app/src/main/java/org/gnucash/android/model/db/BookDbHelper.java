@@ -36,6 +36,10 @@ import org.gnucash.android.util.RecursiveMoveFiles;
 import java.io.File;
 import java.io.IOException;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.qualifiers.ApplicationContext;
+
 /**
  * Database helper for managing database which stores information about the books in the application
  * This is a different database from the one which contains the accounts and transaction data because
@@ -64,7 +68,8 @@ public class BookDbHelper extends SQLiteOpenHelper {
             + DatabaseSchema.BookEntry.COLUMN_MODIFIED_AT   + " TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP "
             + ");" + DatabaseHelper.createUpdatedAtTrigger(DatabaseSchema.BookEntry.TABLE_NAME);
 
-    public BookDbHelper(Context context) {
+    @Inject
+    public BookDbHelper(@ApplicationContext Context context) {
         super(context, DatabaseSchema.BOOK_DATABASE_NAME, null, DatabaseSchema.BOOK_DATABASE_VERSION);
         mContext = context;
     }

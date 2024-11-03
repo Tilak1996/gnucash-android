@@ -28,7 +28,7 @@ import java.sql.Timestamp;
  * The parameters are determined by the user in the export dialog and are then transmitted to the asynchronous task which
  * actually performs the export.
  * @see ExportFormFragment
- * @see ExportAsyncTask
+ * @see ExportAsyncUtil
  *
  * @author Ngewi Fet <ngewif@gmail.com>
  */

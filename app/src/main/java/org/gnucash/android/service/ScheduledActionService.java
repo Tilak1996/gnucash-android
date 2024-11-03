@@ -29,23 +29,30 @@ import android.util.Log;
 import org.gnucash.android.app.GnuCashApplication;
 import org.gnucash.android.model.db.DatabaseHelper;
 import org.gnucash.android.model.db.DatabaseSchema;
+import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
 import org.gnucash.android.model.db.adapter.BooksDbAdapter;
 import org.gnucash.android.model.db.adapter.DatabaseAdapter;
 import org.gnucash.android.model.db.adapter.RecurrenceDbAdapter;
 import org.gnucash.android.model.db.adapter.ScheduledActionDbAdapter;
 import org.gnucash.android.model.db.adapter.SplitsDbAdapter;
 import org.gnucash.android.model.db.adapter.TransactionsDbAdapter;
-import org.gnucash.android.model.export.ExportAsyncTask;
+import org.gnucash.android.model.export.ExportAsyncUtil;
 import org.gnucash.android.model.export.ExportParams;
 import org.gnucash.android.model.data.Book;
 import org.gnucash.android.model.data.ScheduledAction;
 import org.gnucash.android.model.data.Transaction;
+import org.gnucash.android.util.BackupManager;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.SingleObserver;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 /**
  * Service for running scheduled events.
@@ -170,15 +177,10 @@ public class ScheduledActionService extends JobIntentService {
         ExportParams params = ExportParams.parseCsv(scheduledAction.getTag());
         // HACK: the tag isn't updated with the new date, so set the correct by hand
         params.setExportStartTime(new Timestamp(scheduledAction.getLastRunTime()));
-        Boolean result = false;
         try {
-            //wait for async task to finish before we proceed (we are holding a wake lock)
-            result = new ExportAsyncTask(GnuCashApplication.getAppContext(), db).execute(params).get();
-        } catch (InterruptedException | ExecutionException e) {
-//            Crashlytics.logException(e);
-            Log.e(LOG_TAG, e.getMessage());
-        }
-        if (!result) {
+            ExportAsyncUtil exportTask = new ExportAsyncUtil(GnuCashApplication.getAppContext(), db);
+            Boolean result = exportTask.exportData(params).blockingGet();
+        } catch(RuntimeException e) {
             Log.i(LOG_TAG, "Backup/export did not occur. There might have been no"
                     + " new transactions to export or it might have crashed");
             // We don't know if something failed or there weren't transactions to export,

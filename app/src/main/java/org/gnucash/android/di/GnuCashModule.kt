@@ -10,7 +10,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class GnuCashModule {
+class GnuCashModule {
     @Singleton
     @Provides
     fun provideBooksDbAdapter(bookDbHelper: BookDbHelper): BooksDbAdapter =

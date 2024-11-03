@@ -561,7 +561,9 @@ public class AccountsActivity extends BaseDrawerActivity implements OnAccountCli
                     public void onSuccess(@NonNull Pair<Boolean,String> result) {
                         ImportAsyncUtil.onTaskComplete(progressDialog, result.first,
                                 context, result.second);
-                        onFinishTask.onTaskComplete();
+                        if(onFinishTask != null) {
+                            onFinishTask.onTaskComplete();
+                        }
                     }
 
                     @Override

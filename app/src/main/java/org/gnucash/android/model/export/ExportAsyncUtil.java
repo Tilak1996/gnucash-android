@@ -46,7 +46,6 @@ import com.owncloud.android.lib.resources.files.UploadRemoteFileOperation;
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
 import org.gnucash.android.di.GnuCashEntryPoint;
-import org.gnucash.android.model.Repository;
 import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
 import org.gnucash.android.model.db.adapter.DatabaseAdapter;
 import org.gnucash.android.model.db.adapter.SplitsDbAdapter;
@@ -73,20 +72,21 @@ import java.util.Date;
 import java.util.List;
 
 import dagger.hilt.android.EntryPointAccessors;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.core.SingleEmitter;
+import io.reactivex.rxjava3.core.SingleOnSubscribe;
 
 /**
  * Asynchronous task for exporting transactions.
  *
  * @author Ngewi Fet <ngewif@gmail.com>
  */
-public class ExportAsyncTask extends AsyncTask<ExportParams, Void, Boolean> {
+public class ExportAsyncUtil {
 
     /**
      * App context
      */
     private final Context mContext;
-
-    private ProgressDialog mProgressDialog;
 
     private SQLiteDatabase mDb;
 
@@ -106,26 +106,11 @@ public class ExportAsyncTask extends AsyncTask<ExportParams, Void, Boolean> {
     private Exporter mExporter;
     private DropboxHelper mDropboxHelper;
 
-    public ExportAsyncTask(Context context, SQLiteDatabase db){
+    public ExportAsyncUtil(Context context, SQLiteDatabase db){
         this.mContext = context;
         this.mDb = db;
         GnuCashEntryPoint entryPoint = EntryPointAccessors.fromApplication(mContext, GnuCashEntryPoint.class);
         mDropboxHelper = entryPoint.dropBoxHelper();
-    }
-
-    @Override
-    protected void onPreExecute() {
-        super.onPreExecute();
-        if (mContext instanceof Activity) {
-            mProgressDialog = new ProgressDialog(mContext);
-            mProgressDialog.setTitle(R.string.title_progress_exporting_transactions);
-            mProgressDialog.setIndeterminate(true);
-            mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-            mProgressDialog.setProgressNumberFormat(null);
-            mProgressDialog.setProgressPercentFormat(null);
-
-            mProgressDialog.show();
-        }
     }
 
     /**
@@ -133,83 +118,40 @@ public class ExportAsyncTask extends AsyncTask<ExportParams, Void, Boolean> {
      * @param params Export parameters
      * @return <code>true</code> if export was successful, <code>false</code> otherwise
      */
-    @Override
-    protected Boolean doInBackground(ExportParams... params) {
-        mExportParams = params[0];
-        mExporter = getExporter();
 
-        try {
-            mExportedFiles = mExporter.generateExport();
-        } catch (final Exception e) {
-            Log.e(TAG, "Error exporting: " + e.getMessage());
-//            Crashlytics.logException(e);
-            e.printStackTrace();
-            if (mContext instanceof Activity) {
-                ((Activity)mContext).runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(mContext,
-                                mContext.getString(R.string.toast_export_error, mExportParams.getExportFormat().name())
-                                + "\n" + e.getMessage(),
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-            return false;
-        }
+    public Single<Boolean> exportData(ExportParams params) {
+        return Single.create(new SingleOnSubscribe<Boolean>() {
+            @Override
+            public void subscribe(@io.reactivex.rxjava3.annotations.NonNull SingleEmitter<Boolean> emitter) throws Throwable {
+                mExportParams = params;
+                mExporter = getExporter();
 
-        if (mExportedFiles.isEmpty())
-            return false;
-
-        try {
-            moveToTarget();
-        } catch (Exporter.ExporterException e) {
-//            Crashlytics.log(Log.ERROR, TAG, "Error sending exported files to target: " + e.getMessage());
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Transmits the exported transactions to the designated location, either SD card or third-party application
-     * Finishes the activity if the export was starting  in the context of an activity
-     * @param exportSuccessful Result of background export execution
-     */
-    @Override
-    protected void onPostExecute(Boolean exportSuccessful) {
-        if (exportSuccessful) {
-            if (mContext instanceof Activity)
-                reportSuccess();
-
-            if (mExportParams.shouldDeleteTransactionsAfterExport()) {
-                backupAndDeleteTransactions();
-                refreshViews();
-            }
-        } else {
-            if (mContext instanceof Activity) {
-                dismissProgressDialog();
-                if (mExportedFiles.isEmpty()) {
-                    Toast.makeText(mContext,
-                            R.string.toast_no_transactions_to_export,
-                            Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(mContext,
-                            mContext.getString(R.string.toast_export_error, mExportParams.getExportFormat().name()),
-                            Toast.LENGTH_LONG).show();
+                try {
+                    mExportedFiles = mExporter.generateExport();
+                } catch (final Exception e) {
+                    emitter.onError(e);
+                    return;
                 }
+
+                if (mExportedFiles.isEmpty()) {
+                    emitter.onError(new IOException(mContext.getString(R.string.toast_no_transactions_to_export)));
+                    return;
+                }
+
+                try {
+                    moveToTarget();
+                } catch (Exporter.ExporterException e) {
+                    emitter.onError(e);
+                    return;
+                }
+
+                if(params.shouldDeleteTransactionsAfterExport()) {
+                    backupAndDeleteTransactions();
+                }
+
+                emitter.onSuccess(true);
             }
-        }
-
-        dismissProgressDialog();
-    }
-
-    private void dismissProgressDialog() {
-        if (mContext instanceof Activity) {
-            if (mProgressDialog != null && mProgressDialog.isShowing())
-                mProgressDialog.dismiss();
-            ((Activity) mContext).finish();
-        }
+        });
     }
 
     /**
@@ -455,7 +397,7 @@ public class ExportAsyncTask extends AsyncTask<ExportParams, Void, Boolean> {
      * Backups of the database, saves opening balances (if necessary)
      * and deletes all non-template transactions in the database.
      */
-    private void backupAndDeleteTransactions(){
+    private void backupAndDeleteTransactions() {
         Log.i(TAG, "Backup and deleting transactions after export");
         BackupManager.backupActiveBook(); //create backup before deleting everything
         List<Transaction> openingBalances = new ArrayList<>();
@@ -528,9 +470,9 @@ public class ExportAsyncTask extends AsyncTask<ExportParams, Void, Boolean> {
         return exportFiles;
     }
 
-    private void reportSuccess() {
+    public static void reportSuccess(ExportParams exportParams, Context context) {
         String targetLocation;
-        switch (mExportParams.getExportTarget()){
+        switch (exportParams.getExportTarget()){
             case SD_CARD:
                 targetLocation = "SD card";
                 break;
@@ -538,38 +480,26 @@ public class ExportAsyncTask extends AsyncTask<ExportParams, Void, Boolean> {
                 targetLocation = "DropBox -> Apps -> GnuCash";
                 break;
             case GOOGLE_DRIVE:
-                targetLocation = "Google Drive -> " + mContext.getString(R.string.app_name);
+                targetLocation = "Google Drive -> " + context.getString(R.string.app_name);
                 break;
             case OWNCLOUD:
-                targetLocation = mContext.getSharedPreferences(
-                        mContext.getString(R.string.owncloud_pref),
+                targetLocation = context.getSharedPreferences(
+                        context.getString(R.string.owncloud_pref),
                         Context.MODE_PRIVATE).getBoolean(
-                        mContext.getString(R.string.owncloud_sync), false) ?
+                        context.getString(R.string.owncloud_sync), false) ?
 
                         "ownCloud -> " +
-                                mContext.getSharedPreferences(
-                                        mContext.getString(R.string.owncloud_pref),
+                                context.getSharedPreferences(
+                                        context.getString(R.string.owncloud_pref),
                                         Context.MODE_PRIVATE).getString(
-                                        mContext.getString(R.string.key_owncloud_dir), null) :
+                                        context.getString(R.string.key_owncloud_dir), null) :
                         "ownCloud sync not enabled";
                 break;
             default:
-                targetLocation = mContext.getString(R.string.label_export_target_external_service);
+                targetLocation = context.getString(R.string.label_export_target_external_service);
         }
-        Toast.makeText(mContext,
-                String.format(mContext.getString(R.string.toast_exported_to), targetLocation),
+        Toast.makeText(context,
+                String.format(context.getString(R.string.toast_exported_to), targetLocation),
                 Toast.LENGTH_LONG).show();
-    }
-
-    private void refreshViews() {
-        if (mContext instanceof AccountsActivity){
-            AccountsListFragment fragment =
-                    ((AccountsActivity) mContext).getCurrentAccountListFragment();
-            if (fragment != null)
-                fragment.refresh();
-        }
-        if (mContext instanceof TransactionsActivity){
-            ((TransactionsActivity) mContext).refresh();
-        }
     }
 }

@@ -18,33 +18,53 @@ package org.gnucash.android.ui.settings;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
+
+import android.util.Log;
 import android.widget.Toast;
 
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
+import org.gnucash.android.model.data.Transaction;
 import org.gnucash.android.model.db.DatabaseSchema;
+import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
 import org.gnucash.android.model.db.adapter.BooksDbAdapter;
 import org.gnucash.android.model.db.adapter.CommoditiesDbAdapter;
-import org.gnucash.android.model.export.ExportAsyncTask;
+import org.gnucash.android.model.db.adapter.DatabaseAdapter;
+import org.gnucash.android.model.db.adapter.SplitsDbAdapter;
+import org.gnucash.android.model.db.adapter.TransactionsDbAdapter;
+import org.gnucash.android.model.export.ExportAsyncUtil;
 import org.gnucash.android.model.export.ExportFormat;
 import org.gnucash.android.model.export.ExportParams;
 import org.gnucash.android.model.export.Exporter;
 import org.gnucash.android.model.data.Money;
 import org.gnucash.android.ui.account.AccountsActivity;
+import org.gnucash.android.ui.account.AccountsListFragment;
 import org.gnucash.android.ui.settings.dialog.DeleteAllAccountsConfirmationDialog;
+import org.gnucash.android.util.BackupManager;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.annotations.NonNull;
+import io.reactivex.rxjava3.core.SingleObserver;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 /**
  * Account settings fragment inside the Settings activity
@@ -55,10 +75,13 @@ import java.util.concurrent.ExecutionException;
 public class AccountPreferencesFragment extends PreferenceFragmentCompat implements
         Preference.OnPreferenceChangeListener, Preference.OnPreferenceClickListener{
 
+    private static final String TAG = AccountPreferencesFragment.class.getName();
+
     private static final int REQUEST_EXPORT_FILE = 0xC5;
 
     List<CharSequence> mCurrencyEntries = new ArrayList<>();
     List<CharSequence> mCurrencyEntryValues = new ArrayList<>();
+    private CompositeDisposable mCompositeDisposable;
 
     @Override
     public void onCreatePreferences(Bundle bundle, String s) {
@@ -71,6 +94,7 @@ public class AccountPreferencesFragment extends PreferenceFragmentCompat impleme
 
         ActionBar actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         actionBar.setTitle(R.string.title_account_preferences);
+        mCompositeDisposable = new CompositeDisposable();
 
         Cursor cursor = CommoditiesDbAdapter.getInstance().fetchAllRecords(DatabaseSchema.CommodityEntry.COLUMN_MNEMONIC + " ASC");
         while(cursor.moveToNext()){
@@ -183,6 +207,12 @@ public class AccountPreferencesFragment extends PreferenceFragmentCompat impleme
         return false;
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mCompositeDisposable.clear();
+    }
+
     /**
      * Show the dialog for deleting accounts
      */
@@ -205,15 +235,59 @@ public class AccountPreferencesFragment extends PreferenceFragmentCompat impleme
                     ExportParams exportParams = new ExportParams(ExportFormat.CSVA);
                     exportParams.setExportTarget(ExportParams.ExportTarget.URI);
                     exportParams.setExportLocation(data.getData().toString());
-                    ExportAsyncTask exportTask = new ExportAsyncTask(getActivity(), GnuCashApplication.getActiveDb());
+                    ExportAsyncUtil exportTask = new ExportAsyncUtil(getActivity(), GnuCashApplication.getActiveDb());
+                    ProgressDialog progressDialog = new ProgressDialog(getActivity());
+                    exportTask.exportData(exportParams)
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new SingleObserver<Boolean>() {
+                                @Override
+                                public void onSubscribe(@NonNull Disposable d) {
+                                    progressDialog.setTitle(R.string.title_progress_exporting_transactions);
+                                    progressDialog.setIndeterminate(true);
+                                    progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                                    progressDialog.setProgressNumberFormat(null);
+                                    progressDialog.setProgressPercentFormat(null);
 
-                    try {
-                        exportTask.execute(exportParams).get();
-                    } catch (InterruptedException | ExecutionException e) {
-//                        Crashlytics.logException(e);
-                        Toast.makeText(getActivity(), "An error occurred during the Accounts CSV export",
-                                Toast.LENGTH_LONG).show();
-                    }
+                                    progressDialog.show();
+                                    mCompositeDisposable.add(d);
+                                }
+
+                                @Override
+                                public void onSuccess(@NonNull Boolean exportSuccessful) {
+                                    if (progressDialog.isShowing())
+                                        progressDialog.dismiss();
+                                    getActivity().finish();
+
+                                    if (exportSuccessful) {
+                                        ExportAsyncUtil.reportSuccess(exportParams, getActivity());
+
+                                        if (exportParams.shouldDeleteTransactionsAfterExport()) {
+                                            // Refresh activity
+                                            AccountsListFragment fragment =
+                                                    ((AccountsActivity) getActivity()).getCurrentAccountListFragment();
+                                            if (fragment != null)
+                                                fragment.refresh();
+                                        }
+                                    }
+                                }
+
+                                @Override
+                                public void onError(@NonNull Throwable e) {
+                                    Log.e(TAG, "Error exporting: " + e.getMessage());
+                                    if(e instanceof IOException) {
+                                        Toast.makeText(getActivity(),
+                                                R.string.toast_no_transactions_to_export,
+                                                Toast.LENGTH_LONG).show();
+                                    } else {
+                                        Toast.makeText(getActivity(),
+                                                getString(R.string.toast_export_error,
+                                                        exportParams.getExportFormat().name())
+                                                        + "\n" + e.getMessage(),
+                                                Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            });
                 }
         }
     }

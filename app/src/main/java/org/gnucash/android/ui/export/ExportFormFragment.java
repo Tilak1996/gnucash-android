@@ -17,6 +17,7 @@
 package org.gnucash.android.ui.export;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -44,6 +45,7 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.codetroopers.betterpickers.calendardatepicker.CalendarDatePickerDialogFragment;
 import com.codetroopers.betterpickers.radialtimepicker.RadialTimePickerDialogFragment;
@@ -58,21 +60,25 @@ import org.gnucash.android.model.db.adapter.BooksDbAdapter;
 import org.gnucash.android.model.db.adapter.DatabaseAdapter;
 import org.gnucash.android.model.db.adapter.ScheduledActionDbAdapter;
 import org.gnucash.android.model.export.DropboxHelper;
-import org.gnucash.android.model.export.ExportAsyncTask;
+import org.gnucash.android.model.export.ExportAsyncUtil;
 import org.gnucash.android.model.export.ExportFormat;
 import org.gnucash.android.model.export.ExportParams;
 import org.gnucash.android.model.export.Exporter;
 import org.gnucash.android.model.data.BaseModel;
 import org.gnucash.android.model.data.ScheduledAction;
+import org.gnucash.android.ui.account.AccountsActivity;
+import org.gnucash.android.ui.account.AccountsListFragment;
 import org.gnucash.android.ui.common.UxArgument;
 import org.gnucash.android.ui.settings.BackupPreferenceFragment;
 import org.gnucash.android.ui.settings.dialog.OwnCloudDialogFragment;
 import org.gnucash.android.ui.transaction.TransactionFormFragment;
+import org.gnucash.android.ui.transaction.TransactionsActivity;
 import org.gnucash.android.ui.util.RecurrenceParser;
 import org.gnucash.android.ui.util.RecurrenceViewClickListener;
 import org.gnucash.android.util.PreferencesHelper;
 import org.gnucash.android.util.TimestampHelper;
 
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.util.Calendar;
@@ -82,6 +88,12 @@ import java.util.GregorianCalendar;
 import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.annotations.NonNull;
+import io.reactivex.rxjava3.core.SingleObserver;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 /**
  * Dialog fragment for exporting accounts and transactions in various formats
@@ -151,6 +163,8 @@ public class ExportFormFragment extends Fragment implements
 	private View mRecurrenceOptionsView;
 	@Inject
 	DropboxHelper mDropboxHelper;
+
+	private CompositeDisposable mCompositeDisposable;
 	/**
 	 * Event recurrence options
 	 */
@@ -265,6 +279,7 @@ public class ExportFormFragment extends Fragment implements
 		 mSeparatorSemicolonButton = view.findViewById(R.id.radio_separator_semicolon_format);
 		 mCsvOptionsLayout = view.findViewById(R.id.layout_csv_options);
 		 mRecurrenceOptionsView = view.findViewById(R.id.recurrence_options);
+		 mCompositeDisposable = new CompositeDisposable();
 
 		bindViewListeners();
 
@@ -310,6 +325,12 @@ public class ExportFormFragment extends Fragment implements
 	}
 
 	@Override
+	public void onDestroyView() {
+		super.onDestroyView();
+		mCompositeDisposable.clear();
+	}
+
+	@Override
     public void onPause() {
         super.onPause();
         // When the user try to export sharing to 3rd party service like DropBox
@@ -343,7 +364,51 @@ public class ExportFormFragment extends Fragment implements
 		exportParameters.setCsvSeparator(mExportCsvSeparator);
 
 		Log.i(TAG, "Commencing async export of transactions");
-		new ExportAsyncTask(getActivity(), GnuCashApplication.getActiveDb()).execute(exportParameters);
+//		new ExportAsyncUtil(getActivity(), GnuCashApplication.getActiveDb()).execute(exportParameters);
+		ExportAsyncUtil exportTask = new ExportAsyncUtil(getActivity(), GnuCashApplication.getActiveDb());
+		ProgressDialog progressDialog = new ProgressDialog(getActivity());
+		exportTask.exportData(exportParameters)
+				.subscribeOn(Schedulers.io())
+				.observeOn(AndroidSchedulers.mainThread())
+				.subscribe(new SingleObserver<Boolean>() {
+					@Override
+					public void onSubscribe(@NonNull Disposable d) {
+						progressDialog.setTitle(R.string.title_progress_exporting_transactions);
+						progressDialog.setIndeterminate(true);
+						progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+						progressDialog.setProgressNumberFormat(null);
+						progressDialog.setProgressPercentFormat(null);
+
+						progressDialog.show();
+						mCompositeDisposable.add(d);
+					}
+
+					@Override
+					public void onSuccess(@NonNull Boolean exportSuccessful) {
+						if (progressDialog.isShowing())
+							progressDialog.dismiss();
+						getActivity().finish();
+						if (exportSuccessful) {
+							ExportAsyncUtil.reportSuccess(exportParameters, getActivity());
+						}
+					}
+
+					@Override
+					public void onError(@NonNull Throwable e) {
+						Log.e(TAG, "Error exporting: " + e.getMessage());
+						if(e instanceof IOException) {
+							Toast.makeText(getActivity(),
+									R.string.toast_no_transactions_to_export,
+									Toast.LENGTH_LONG).show();
+						} else {
+							Toast.makeText(getActivity(),
+									getString(R.string.toast_export_error,
+											exportParameters.getExportFormat().name())
+											+ "\n" + e.getMessage(),
+									Toast.LENGTH_SHORT).show();
+						}
+					}
+				});
 
 		if (mRecurrenceRule != null) {
 			ScheduledAction scheduledAction = new ScheduledAction(ScheduledAction.ActionType.BACKUP);
@@ -366,7 +431,7 @@ public class ExportFormFragment extends Fragment implements
 	/**
 	 * Bind views to actions when initializing the export form
 	 */
-	private void bindViewListeners(){
+	private void bindViewListeners() {
 		// export destination bindings
 		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getActivity(),
 		        R.array.export_destinations, android.R.layout.simple_spinner_item);
@@ -510,8 +575,9 @@ public class ExportFormFragment extends Fragment implements
             }
         };
 
-		View v = getView();
-		assert v != null;
+//		View v = getView();
+		//point
+//		assert v != null;
 
 		mOfxRadioButton.setOnClickListener(radioClickListener);
 		mQifRadioButton.setOnClickListener(radioClickListener);
