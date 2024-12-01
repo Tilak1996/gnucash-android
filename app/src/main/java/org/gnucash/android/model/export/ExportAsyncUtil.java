@@ -44,6 +44,7 @@ import com.owncloud.android.lib.resources.files.UploadRemoteFileOperation;
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
 import org.gnucash.android.di.GnuCashEntryPoint;
+import org.gnucash.android.model.Repository;
 import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
 import org.gnucash.android.model.db.adapter.DatabaseAdapter;
 import org.gnucash.android.model.db.adapter.SplitsDbAdapter;
@@ -54,7 +55,6 @@ import org.gnucash.android.model.export.ofx.OfxExporter;
 import org.gnucash.android.model.export.qif.QifExporter;
 import org.gnucash.android.model.export.xml.GncXmlExporter;
 import org.gnucash.android.model.data.Transaction;
-import org.gnucash.android.util.BackupManager;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -101,11 +101,14 @@ public class ExportAsyncUtil {
     private Exporter mExporter;
     private DropboxHelper mDropboxHelper;
 
+    private Repository mRepository;
+
     public ExportAsyncUtil(Context context, SQLiteDatabase db){
         this.mContext = context;
         this.mDb = db;
         GnuCashEntryPoint entryPoint = EntryPointAccessors.fromApplication(mContext, GnuCashEntryPoint.class);
         mDropboxHelper = entryPoint.dropBoxHelper();
+        mRepository = entryPoint.repository();;
     }
 
     /**
@@ -394,7 +397,7 @@ public class ExportAsyncUtil {
      */
     private void backupAndDeleteTransactions() {
         Log.i(TAG, "Backup and deleting transactions after export");
-        BackupManager.backupActiveBook(); //create backup before deleting everything
+        mRepository.backupActiveBook(); //create backup before deleting everything
         List<Transaction> openingBalances = new ArrayList<>();
         boolean preserveOpeningBalances = GnuCashApplication.shouldSaveOpeningBalances(false);
 

@@ -40,6 +40,7 @@ import android.widget.TextView;
 
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
+import org.gnucash.android.model.Repository;
 import org.gnucash.android.model.db.DatabaseSchema;
 import org.gnucash.android.model.db.adapter.BooksDbAdapter;
 import org.gnucash.android.ui.account.AccountsActivity;
@@ -48,6 +49,10 @@ import org.gnucash.android.ui.report.ReportsActivity;
 import org.gnucash.android.ui.settings.PreferenceActivity;
 import org.gnucash.android.ui.transaction.ScheduledActionsActivity;
 import org.gnucash.android.util.BookUtils;
+
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
 
 /**
  * Base activity implementing the navigation drawer, to be extended by all activities requiring one.
@@ -64,6 +69,7 @@ import org.gnucash.android.util.BookUtils;
  * </p>
  * @author Ngewi Fet <ngewif@gmail.com>
  */
+@AndroidEntryPoint
 public abstract class BaseDrawerActivity extends PasscodeLockActivity implements
     PopupMenu.OnMenuItemClickListener {
 
@@ -77,6 +83,9 @@ public abstract class BaseDrawerActivity extends PasscodeLockActivity implements
     protected ActionBarDrawerToggle mDrawerToggle;
 
     public static final int REQUEST_OPEN_DOCUMENT = 0x20;
+
+    @Inject
+    Repository mRepository;
 
     private class DrawerItemClickListener implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -291,12 +300,12 @@ public abstract class BaseDrawerActivity extends PasscodeLockActivity implements
 
         switch (requestCode) {
             case AccountsActivity.REQUEST_PICK_ACCOUNTS_FILE:
-                AccountsActivity.importXmlFileFromIntent(this, data, null);
+                mRepository.importXmlFileFromIntent(this, data, null);
                 break;
             case BaseDrawerActivity.REQUEST_OPEN_DOCUMENT: //this uses the Storage Access Framework
                 final int takeFlags = data.getFlags()
                         & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                AccountsActivity.importXmlFileFromIntent(this, data, null);
+                mRepository.importXmlFileFromIntent(this, data, null);
                 getContentResolver().takePersistableUriPermission(data.getData(), takeFlags);
                 break;
             default:

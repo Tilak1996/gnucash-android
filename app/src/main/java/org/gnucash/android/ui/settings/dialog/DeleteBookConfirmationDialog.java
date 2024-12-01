@@ -22,9 +22,12 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 
 import org.gnucash.android.R;
+import org.gnucash.android.di.GnuCashEntryPoint;
+import org.gnucash.android.model.Repository;
 import org.gnucash.android.model.db.adapter.BooksDbAdapter;
 import org.gnucash.android.ui.common.Refreshable;
-import org.gnucash.android.util.BackupManager;
+
+import dagger.hilt.android.EntryPointAccessors;
 
 /**
  * Confirmation dialog for deleting a book.
@@ -32,6 +35,9 @@ import org.gnucash.android.util.BackupManager;
  * @author Àlex Magaz <alexandre.magaz@gmail.com>
  */
 public class DeleteBookConfirmationDialog extends DoubleConfirmationDialog {
+
+    private Repository mRepository;
+
     @NonNull
     public static DeleteBookConfirmationDialog newInstance(String bookUID) {
         DeleteBookConfirmationDialog frag = new DeleteBookConfirmationDialog();
@@ -44,6 +50,9 @@ public class DeleteBookConfirmationDialog extends DoubleConfirmationDialog {
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
+        if(mRepository == null) {
+            mRepository = EntryPointAccessors.fromActivity(getActivity(), GnuCashEntryPoint.class).repository();
+        }
         return getDialogBuilder()
                 .setTitle(R.string.title_confirm_delete_book)
                 .setIcon(R.drawable.ic_close_black_24dp)
@@ -53,7 +62,7 @@ public class DeleteBookConfirmationDialog extends DoubleConfirmationDialog {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int which) {
                         final String bookUID = getArguments().getString("bookUID");
-                        BackupManager.backupBook(bookUID);
+                        mRepository.backupBook(bookUID);
                         BooksDbAdapter.getInstance().deleteBook(bookUID);
                         ((Refreshable) getTargetFragment()).refresh();
                     }

@@ -36,6 +36,7 @@ import android.widget.Toast;
 
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
+import org.gnucash.android.model.Repository;
 import org.gnucash.android.model.data.Transaction;
 import org.gnucash.android.model.db.DatabaseSchema;
 import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
@@ -52,13 +53,14 @@ import org.gnucash.android.model.data.Money;
 import org.gnucash.android.ui.account.AccountsActivity;
 import org.gnucash.android.ui.account.AccountsListFragment;
 import org.gnucash.android.ui.settings.dialog.DeleteAllAccountsConfirmationDialog;
-import org.gnucash.android.util.BackupManager;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.SingleObserver;
@@ -72,6 +74,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
  * @author Ngewi Fet <ngewi.fet@gmail.com>
  * @author Oleksandr Tyshkovets <olexandr.tyshkovets@gmail.com>
  */
+@AndroidEntryPoint
 public class AccountPreferencesFragment extends PreferenceFragmentCompat implements
         Preference.OnPreferenceChangeListener, Preference.OnPreferenceClickListener{
 
@@ -82,6 +85,9 @@ public class AccountPreferencesFragment extends PreferenceFragmentCompat impleme
     List<CharSequence> mCurrencyEntries = new ArrayList<>();
     List<CharSequence> mCurrencyEntryValues = new ArrayList<>();
     private CompositeDisposable mCompositeDisposable;
+
+    @Inject
+    Repository mRepository;
 
     @Override
     public void onCreatePreferences(Bundle bundle, String s) {
@@ -226,7 +232,7 @@ public class AccountPreferencesFragment extends PreferenceFragmentCompat impleme
         switch (requestCode){
             case AccountsActivity.REQUEST_PICK_ACCOUNTS_FILE:
                 if (resultCode == Activity.RESULT_OK && data != null) {
-                    AccountsActivity.importXmlFileFromIntent(getActivity(), data, null);
+                    mRepository.importXmlFileFromIntent(getActivity(), data, null);
                 }
                 break;
 

@@ -52,6 +52,7 @@ import android.widget.Toast;
 
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
+import org.gnucash.android.model.Repository;
 import org.gnucash.android.model.db.DatabaseCursorLoader;
 import org.gnucash.android.model.db.DatabaseSchema;
 import org.gnucash.android.model.db.adapter.ScheduledActionDbAdapter;
@@ -61,17 +62,21 @@ import org.gnucash.android.model.data.ScheduledAction;
 import org.gnucash.android.model.data.Transaction;
 import org.gnucash.android.ui.common.FormActivity;
 import org.gnucash.android.ui.common.UxArgument;
-import org.gnucash.android.util.BackupManager;
 
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.List;
+
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
 
 /**
  * Fragment which displays the scheduled actions in the system
  * <p>Currently, it handles the display of scheduled transactions and scheduled exports</p>
  * @author Ngewi Fet <ngewif@gmail.com>
  */
+@AndroidEntryPoint
 public class ScheduledActionsListFragment extends ListFragment implements
         LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -90,6 +95,9 @@ public class ScheduledActionsListFragment extends ListFragment implements
     private boolean mInEditMode = false;
 
     private ScheduledAction.ActionType mActionType = ScheduledAction.ActionType.TRANSACTION;
+
+    @Inject
+    Repository mRepository;
 
     /**
      * Callbacks for the menu items in the Context ActionBar (CAB) in action mode
@@ -118,7 +126,7 @@ public class ScheduledActionsListFragment extends ListFragment implements
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.context_menu_delete:
-                    BackupManager.backupActiveBook();
+                    mRepository.backupActiveBook();
 
                     for (long id : getListView().getCheckedItemIds()) {
 

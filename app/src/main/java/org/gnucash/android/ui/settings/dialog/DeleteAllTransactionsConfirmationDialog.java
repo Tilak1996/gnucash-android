@@ -26,15 +26,18 @@ import android.widget.Toast;
 
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
+import org.gnucash.android.di.GnuCashEntryPoint;
+import org.gnucash.android.model.Repository;
 import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
 import org.gnucash.android.model.db.adapter.DatabaseAdapter;
 import org.gnucash.android.model.db.adapter.TransactionsDbAdapter;
 import org.gnucash.android.model.data.Transaction;
 import org.gnucash.android.ui.homescreen.WidgetConfigurationActivity;
-import org.gnucash.android.util.BackupManager;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import dagger.hilt.android.EntryPointAccessors;
 
 /**
  * Confirmation dialog for deleting all transactions
@@ -44,6 +47,8 @@ import java.util.List;
  */
 public class DeleteAllTransactionsConfirmationDialog extends DoubleConfirmationDialog {
 
+    private Repository mRepository;
+
     public static DeleteAllTransactionsConfirmationDialog newInstance() {
         DeleteAllTransactionsConfirmationDialog frag = new DeleteAllTransactionsConfirmationDialog();
         return frag;
@@ -51,13 +56,16 @@ public class DeleteAllTransactionsConfirmationDialog extends DoubleConfirmationD
 
     @Override
     @NonNull public Dialog onCreateDialog(Bundle savedInstanceState) {
+        if(mRepository == null) {
+            mRepository = EntryPointAccessors.fromActivity(getActivity(), GnuCashEntryPoint.class).repository();
+        }
         return getDialogBuilder()
                 .setIcon(android.R.drawable.ic_delete)
                 .setTitle(R.string.title_confirm_delete).setMessage(R.string.msg_delete_all_transactions_confirmation)
                 .setPositiveButton(R.string.alert_dialog_ok_delete,
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int whichButton) {
-                                BackupManager.backupActiveBook();
+                                mRepository.backupActiveBook();
 
                                 Context context = getActivity();
                                 AccountsDbAdapter accountsDbAdapter = AccountsDbAdapter.getInstance();

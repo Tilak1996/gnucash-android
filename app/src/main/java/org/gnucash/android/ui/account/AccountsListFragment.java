@@ -52,6 +52,7 @@ import android.widget.TextView;
 
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
+import org.gnucash.android.model.Repository;
 import org.gnucash.android.model.db.DatabaseCursorLoader;
 import org.gnucash.android.model.db.DatabaseSchema;
 import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
@@ -65,15 +66,19 @@ import org.gnucash.android.ui.common.UxArgument;
 import org.gnucash.android.ui.util.AccountBalanceTask;
 import org.gnucash.android.ui.util.CursorRecyclerAdapter;
 import org.gnucash.android.ui.util.widget.EmptyRecyclerView;
-import org.gnucash.android.util.BackupManager;
 
 import java.util.List;
+
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
 
 /**
  * Fragment for displaying the list of accounts in the database
  *
  * @author Ngewi Fet <ngewif@gmail.com>
  */
+@AndroidEntryPoint
 public class AccountsListFragment extends Fragment implements
         Refreshable,
         LoaderCallbacks<Cursor>,
@@ -83,6 +88,9 @@ public class AccountsListFragment extends Fragment implements
     AccountRecyclerAdapter mAccountRecyclerAdapter;
     private EmptyRecyclerView mRecyclerView;
     private TextView mEmptyTextView;
+
+    @Inject
+    Repository mRepository;
 
     /**
      * Describes the kinds of accounts that should be loaded in the accounts list.
@@ -247,7 +255,7 @@ public class AccountsListFragment extends Fragment implements
         if (acc.getTransactionCount() > 0 || mAccountsDbAdapter.getSubAccountCount(acc.getUID()) > 0) {
             showConfirmationDialog(rowId);
         } else {
-            BackupManager.backupActiveBook();
+            mRepository.backupActiveBook();
             // Avoid calling AccountsDbAdapter.deleteRecord(long). See #654
             String uid = mAccountsDbAdapter.getUID(rowId);
             mAccountsDbAdapter.deleteRecord(uid);

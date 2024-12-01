@@ -46,22 +46,34 @@ import java.util.Collections;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+import dagger.hilt.android.qualifiers.ApplicationContext;
+
 
 /**
  * Deals with all backup-related tasks.
  */
+@Singleton
 public class BackupManager {
     private static final String LOG_TAG = "BackupManager";
     public static final String KEY_BACKUP_FILE = "book_backup_file_key";
+
+    private Context mContext;
+
+    @Inject
+    public BackupManager(@ApplicationContext Context context) {
+        mContext = context;
+    }
 
     /**
      * Perform an automatic backup of all books in the database.
      * This method is run every time the service is executed
      */
-    static void backupAllBooks() {
+    public void backupAllBooks() {
         BooksDbAdapter booksDbAdapter = BooksDbAdapter.getInstance();
         List<String> bookUIDs = booksDbAdapter.getAllBookUIDs();
-        Context context = GnuCashApplication.getAppContext();
 
         for (String bookUID : bookUIDs) {
             String backupFile = getBookBackupFileUri(bookUID);
@@ -71,7 +83,7 @@ public class BackupManager {
             }
 
             try (BufferedOutputStream bufferedOutputStream =
-                    new BufferedOutputStream(context.getContentResolver().openOutputStream(Uri.parse(backupFile)))){
+                    new BufferedOutputStream(mContext.getContentResolver().openOutputStream(Uri.parse(backupFile)))){
                 GZIPOutputStream gzipOutputStream = new GZIPOutputStream(bufferedOutputStream);
                 OutputStreamWriter writer = new OutputStreamWriter(gzipOutputStream);
                 ExportParams params = new ExportParams(ExportFormat.XML);
@@ -90,7 +102,7 @@ public class BackupManager {
      *
      * @return {@code true} if backup was successful, {@code false} otherwise
      */
-    public static boolean backupActiveBook() {
+    public boolean backupActiveBook() {
         return backupBook(BooksDbAdapter.getInstance().getActiveBookUID());
     }
 
@@ -101,7 +113,7 @@ public class BackupManager {
      * @param bookUID Unique ID of the book
      * @return {@code true} if backup was successful, {@code false} otherwise
      */
-    public static boolean backupBook(String bookUID){
+    public boolean backupBook(String bookUID){
         OutputStream outputStream;
         try {
             String backupFile = getBookBackupFileUri(bookUID);
@@ -134,7 +146,7 @@ public class BackupManager {
      * @return the file path for backups of the database.
      * @see #getBackupFolderPath(String)
      */
-    private static String getBackupFilePath(String bookUID){
+    private String getBackupFilePath(String bookUID){
         Book book = BooksDbAdapter.getInstance().getRecord(bookUID);
         return getBackupFolderPath(book.getUID())
                + Exporter.buildExportFilename(ExportFormat.XML, book.getDisplayName());
@@ -147,10 +159,8 @@ public class BackupManager {
      *
      * @return Absolute path to backup folder for the book
      */
-    private static String getBackupFolderPath(String bookUID){
-        String baseFolderPath = GnuCashApplication.getAppContext()
-                                                  .getExternalFilesDir(null)
-                                                  .getAbsolutePath();
+    private String getBackupFolderPath(String bookUID){
+        String baseFolderPath = mContext.getExternalFilesDir(null).getAbsolutePath();
         String path = baseFolderPath + "/" + bookUID + "/backups/";
         File file = new File(path);
         if (!file.exists())
@@ -164,12 +174,12 @@ public class BackupManager {
      * @return DocumentFile for book backups, or null if the user hasn't set any.
      */
     @Nullable
-    public static String getBookBackupFileUri(String bookUID){
+    public String getBookBackupFileUri(String bookUID){
         SharedPreferences sharedPreferences = PreferenceActivity.getBookSharedPreferences(bookUID);
         return sharedPreferences.getString(KEY_BACKUP_FILE, null);
     }
 
-    public static List<File> getBackupList(String bookUID) {
+    public List<File> getBackupList(String bookUID) {
         File[] backupFiles = new File(getBackupFolderPath(bookUID)).listFiles();
         Arrays.sort(backupFiles);
         List<File> backupFilesList = Arrays.asList(backupFiles);
@@ -177,7 +187,7 @@ public class BackupManager {
         return  backupFilesList;
     }
 
-    public static void schedulePeriodicBackups(Context context) {
+    public void schedulePeriodicBackups(Context context) {
         Log.i(LOG_TAG, "Scheduling backup job");
         Intent intent = new Intent(context, PeriodicJobReceiver.class);
         intent.setAction(PeriodicJobReceiver.ACTION_BACKUP);

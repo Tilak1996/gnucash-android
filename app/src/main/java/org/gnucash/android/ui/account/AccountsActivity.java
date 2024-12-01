@@ -53,6 +53,7 @@ import android.widget.Toast;
 import org.gnucash.android.BuildConfig;
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
+import org.gnucash.android.model.Repository;
 import org.gnucash.android.model.db.DatabaseSchema;
 import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
 import org.gnucash.android.model.db.adapter.BooksDbAdapter;
@@ -64,9 +65,11 @@ import org.gnucash.android.ui.common.UxArgument;
 import org.gnucash.android.ui.transaction.TransactionsActivity;
 import org.gnucash.android.ui.util.TaskDelegate;
 import org.gnucash.android.ui.wizard.FirstRunWizardActivity;
-import org.gnucash.android.util.BackupManager;
 import org.gnucash.android.util.BookUtils;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.SingleObserver;
@@ -81,6 +84,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
  * @author Ngewi Fet <ngewif@gmail.com>
  * @author Oleksandr Tyshkovets <olexandr.tyshkovets@gmail.com>
  */
+@AndroidEntryPoint
 public class AccountsActivity extends BaseDrawerActivity implements OnAccountClickedListener {
 
     /**
@@ -140,6 +144,9 @@ public class AccountsActivity extends BaseDrawerActivity implements OnAccountCli
     private FloatingActionButton mFloatingActionButton;
     private CoordinatorLayout mCoordinatorLayout;
     private static CompositeDisposable mCompositeDisposable = new CompositeDisposable();
+
+    @Inject
+    Repository mRepository;
 
     /**
      * Configuration for rating the app
@@ -298,7 +305,7 @@ public class AccountsActivity extends BaseDrawerActivity implements OnAccountCli
         //when someone launches the app to view a (.gnucash or .gnca) file
         Uri data = intent.getData();
         if (data != null){
-            BackupManager.backupActiveBook();
+            mRepository.backupActiveBook();
             intent.setData(null);
             ProgressDialog progressDialog = new ProgressDialog(this);
             ImportAsyncUtil.importDataSingle(this,data)
@@ -389,7 +396,7 @@ public class AccountsActivity extends BaseDrawerActivity implements OnAccountCli
             showWhatsNewDialog(this);
         }
         GnuCashApplication.startScheduledActionExecutionService(this);
-        BackupManager.schedulePeriodicBackups(this);
+        mRepository.schedulePeriodicBackups(this);
     }
 
     @Override
@@ -568,58 +575,6 @@ public class AccountsActivity extends BaseDrawerActivity implements OnAccountCli
 //            Crashlytics.logException(ex);
             Toast.makeText(fragment.getActivity(), R.string.toast_install_file_manager, Toast.LENGTH_LONG).show();
         }
-    }
-
-    /**
-     * Reads and XML file from an intent and imports it into the database
-     * <p>This method is usually called in response to {@link AccountsActivity#startXmlFileChooser(Activity)}</p>
-     * @param context Activity context
-     * @param data Intent data containing the XML uri
-     * @param onFinishTask Task to be executed when import is complete
-     */
-    public static void importXmlFileFromIntent(Activity context, Intent data, TaskDelegate onFinishTask) {
-        BackupManager.backupActiveBook();
-        ProgressDialog progressDialog = new ProgressDialog(context);
-        ImportAsyncUtil.importDataSingle(context,data.getData())
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new SingleObserver<Pair<Boolean,String>>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
-                        mCompositeDisposable.add(d);
-
-                        progressDialog.setTitle(R.string.title_progress_importing_accounts);
-                        progressDialog.setIndeterminate(true);
-                        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-                        progressDialog.show();
-
-                        //these methods must be called after progressDialog.show()
-                        progressDialog.setProgressNumberFormat(null);
-                        progressDialog.setProgressPercentFormat(null);
-                    }
-
-                    @Override
-                    public void onSuccess(@NonNull Pair<Boolean,String> result) {
-                        if (progressDialog.isShowing())
-                            progressDialog.dismiss();
-
-                        int message = result.first ? R.string.toast_success_importing_accounts : R.string.toast_error_importing_accounts;
-                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
-
-                        if (result.second != null)
-                            BookUtils.loadBook(result.second);
-
-                        if(onFinishTask != null) {
-                            onFinishTask.onTaskComplete();
-                        }
-                    }
-
-                    @Override
-                    public void onError(@NonNull Throwable e) {
-
-                    }
-                });
-//        new ImportAsyncTask(context, onFinishTask).execute(data.getData());
     }
 
     /**

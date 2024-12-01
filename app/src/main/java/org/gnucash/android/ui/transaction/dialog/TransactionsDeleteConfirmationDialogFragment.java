@@ -24,6 +24,7 @@ import androidx.fragment.app.DialogFragment;
 
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
+import org.gnucash.android.model.Repository;
 import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
 import org.gnucash.android.model.db.adapter.DatabaseAdapter;
 import org.gnucash.android.model.db.adapter.TransactionsDbAdapter;
@@ -31,10 +32,13 @@ import org.gnucash.android.model.data.Transaction;
 import org.gnucash.android.ui.common.Refreshable;
 import org.gnucash.android.ui.common.UxArgument;
 import org.gnucash.android.ui.homescreen.WidgetConfigurationActivity;
-import org.gnucash.android.util.BackupManager;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
 
 /**
  * Displays a delete confirmation dialog for transactions
@@ -42,7 +46,11 @@ import java.util.List;
  * @author Ngewi Fet <ngewif@gmail.com>
  *
  */
+@AndroidEntryPoint
 public class TransactionsDeleteConfirmationDialogFragment extends DialogFragment {
+
+    @Inject
+    Repository mRepository;
 
     public static TransactionsDeleteConfirmationDialogFragment newInstance(int title, long id) {
         TransactionsDeleteConfirmationDialogFragment frag = new TransactionsDeleteConfirmationDialogFragment();
@@ -65,7 +73,7 @@ public class TransactionsDeleteConfirmationDialogFragment extends DialogFragment
                             public void onClick(DialogInterface dialog, int whichButton) {
                                 TransactionsDbAdapter transactionsDbAdapter = TransactionsDbAdapter.getInstance();
                                 if (rowId == 0) {
-                                    BackupManager.backupActiveBook(); //create backup before deleting everything
+                                    mRepository.backupActiveBook(); //create backup before deleting everything
                                     List<Transaction> openingBalances = new ArrayList<Transaction>();
                                     boolean preserveOpeningBalances = GnuCashApplication.shouldSaveOpeningBalances(false);
                                     if (preserveOpeningBalances) {

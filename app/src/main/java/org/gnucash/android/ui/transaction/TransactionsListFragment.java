@@ -43,6 +43,7 @@ import android.widget.TextView;
 
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
+import org.gnucash.android.model.Repository;
 import org.gnucash.android.model.db.DatabaseCursorLoader;
 import org.gnucash.android.model.db.DatabaseSchema;
 import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
@@ -60,15 +61,19 @@ import org.gnucash.android.ui.settings.PreferenceActivity;
 import org.gnucash.android.ui.transaction.dialog.BulkMoveDialogFragment;
 import org.gnucash.android.ui.util.CursorRecyclerAdapter;
 import org.gnucash.android.ui.util.widget.EmptyRecyclerView;
-import org.gnucash.android.util.BackupManager;
 
 import java.util.List;
+
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
 
 /**
  * List Fragment for displaying list of transactions for an account
  * @author Ngewi Fet <ngewif@gmail.com>
  *
  */
+@AndroidEntryPoint
 public class TransactionsListFragment extends Fragment implements
         Refreshable, LoaderCallbacks<Cursor>{
 
@@ -85,6 +90,8 @@ public class TransactionsListFragment extends Fragment implements
 	private TransactionRecyclerAdapter mTransactionRecyclerAdapter;
 	private EmptyRecyclerView mRecyclerView;
 
+	@Inject
+	Repository mRepository;
 
 	@Override
  	public void onCreate(Bundle savedInstanceState) {		
@@ -357,7 +364,7 @@ public class TransactionsListFragment extends Fragment implements
 			public boolean onMenuItemClick(MenuItem item) {
 				switch (item.getItemId()) {
 					case R.id.context_menu_delete:
-						BackupManager.backupActiveBook();
+						mRepository.backupActiveBook();
 						mTransactionsDbAdapter.deleteRecord(transactionId);
 						WidgetConfigurationActivity.updateAllWidgets(getActivity());
 						refresh();

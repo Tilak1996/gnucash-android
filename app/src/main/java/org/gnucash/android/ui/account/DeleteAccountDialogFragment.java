@@ -32,6 +32,7 @@ import android.widget.TextView;
 
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
+import org.gnucash.android.model.Repository;
 import org.gnucash.android.model.db.DatabaseSchema;
 import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
 import org.gnucash.android.model.db.adapter.SplitsDbAdapter;
@@ -39,10 +40,13 @@ import org.gnucash.android.model.db.adapter.TransactionsDbAdapter;
 import org.gnucash.android.model.data.AccountType;
 import org.gnucash.android.ui.common.Refreshable;
 import org.gnucash.android.ui.homescreen.WidgetConfigurationActivity;
-import org.gnucash.android.util.BackupManager;
 import org.gnucash.android.util.QualifiedAccountNameCursorAdapter;
 
 import java.util.List;
+
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
 
 /**
  * Delete confirmation dialog for accounts.
@@ -52,6 +56,7 @@ import java.util.List;
  *
  * @author Ngewi Fet <ngewif@gmail.com>
  */
+@AndroidEntryPoint
 public class DeleteAccountDialogFragment extends DialogFragment {
 
     /**
@@ -83,6 +88,9 @@ public class DeleteAccountDialogFragment extends DialogFragment {
 
     private int mTransactionCount;
     private int mSubAccountCount;
+
+    @Inject
+    Repository mRepository;
 
     /**
      * Creates new instance of the delete confirmation dialog and provides parameters for it
@@ -210,7 +218,7 @@ public class DeleteAccountDialogFragment extends DialogFragment {
 
             @Override
             public void onClick(View v) {
-                BackupManager.backupActiveBook();
+                mRepository.backupActiveBook();
 
                 AccountsDbAdapter accountsDbAdapter = AccountsDbAdapter.getInstance();
 

@@ -22,6 +22,11 @@ import androidx.core.app.JobIntentService;
 
 import android.util.Log;
 
+import org.gnucash.android.di.GnuCashEntryPoint;
+import org.gnucash.android.model.Repository;
+
+import dagger.hilt.android.EntryPointAccessors;
+
 
 /**
  * Job to back up books periodically.
@@ -33,6 +38,12 @@ import android.util.Log;
 public class BackupJob extends JobIntentService {
     private static final String LOG_TAG = "BackupJob";
     private static final int JOB_ID = 1000;
+    private Repository mRepository;
+
+    public BackupJob() {
+        GnuCashEntryPoint entryPoint = EntryPointAccessors.fromApplication(getApplicationContext(), GnuCashEntryPoint.class);
+        mRepository = entryPoint.repository();
+    }
 
     public static void enqueueWork(Context context) {
         Intent intent = new Intent(context, BackupJob.class);
@@ -42,6 +53,6 @@ public class BackupJob extends JobIntentService {
     @Override
     protected void onHandleWork(@NonNull Intent intent) {
         Log.i(LOG_TAG, "Doing backup of all books.");
-        BackupManager.backupAllBooks();
+        mRepository.backupAllBooks();
     }
 }

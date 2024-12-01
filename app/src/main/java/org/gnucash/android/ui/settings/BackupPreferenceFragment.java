@@ -48,6 +48,7 @@ import com.dropbox.core.android.Auth;
 
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
+import org.gnucash.android.model.Repository;
 import org.gnucash.android.model.db.adapter.BooksDbAdapter;
 import org.gnucash.android.model.export.Exporter;
 import org.gnucash.android.model.importer.ImportAsyncUtil;
@@ -60,6 +61,9 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.SingleObserver;
@@ -73,6 +77,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
  * @author Ngewi Fet <ngewif@gmail.com>
  *
  */
+@AndroidEntryPoint
 public class BackupPreferenceFragment extends PreferenceFragmentCompat implements
 		Preference.OnPreferenceClickListener, Preference.OnPreferenceChangeListener {
 
@@ -102,6 +107,9 @@ public class BackupPreferenceFragment extends PreferenceFragmentCompat implement
 	 */
 	public static final String LOG_TAG = "BackupPrefFragment";
 	private CompositeDisposable mCompositeDisposable;
+
+	@Inject
+	Repository mRepository;
 
 	/**
 	 * Client for Google Drive Sync
@@ -159,7 +167,7 @@ public class BackupPreferenceFragment extends PreferenceFragmentCompat implement
 
 		pref = findPreference(getString(R.string.key_backup_location));
 		pref.setOnPreferenceClickListener(this);
-		String defaultBackupLocation = BackupManager.getBookBackupFileUri(BooksDbAdapter.getInstance().getActiveBookUID());
+		String defaultBackupLocation = mRepository.getBookBackupFileUri(BooksDbAdapter.getInstance().getActiveBookUID());
 		if (defaultBackupLocation != null){
 			pref.setSummary(Uri.parse(defaultBackupLocation).getAuthority());
 		}
@@ -201,7 +209,7 @@ public class BackupPreferenceFragment extends PreferenceFragmentCompat implement
 		}
 
 		if (key.equals(getString(R.string.key_create_backup))){
-			boolean result = BackupManager.backupActiveBook();
+			boolean result = mRepository.backupActiveBook();
 			int msg = result ? R.string.toast_backup_successful : R.string.toast_backup_failed;
 			Toast.makeText(getActivity(), msg, Toast.LENGTH_SHORT).show();
 		}
@@ -384,7 +392,7 @@ public class BackupPreferenceFragment extends PreferenceFragmentCompat implement
 		Log.i("Settings", "Opening GnuCash XML backups for restore");
 		final String bookUID = BooksDbAdapter.getInstance().getActiveBookUID();
 
-		final String defaultBackupFile = BackupManager.getBookBackupFileUri(bookUID);
+		final String defaultBackupFile = mRepository.getBookBackupFileUri(bookUID);
 		if (defaultBackupFile != null){
 			androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(getActivity())
 					.setTitle(R.string.title_confirm_restore_backup)
@@ -442,7 +450,7 @@ public class BackupPreferenceFragment extends PreferenceFragmentCompat implement
 		}
 
 		//If no default location was set, look in the internal SD card location
-		if (BackupManager.getBackupList(bookUID).isEmpty()){
+		if (mRepository.getBackupList(bookUID).isEmpty()){
 			androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(getActivity())
 					.setTitle(R.string.title_no_backups_found)
 					.setMessage(R.string.msg_no_backups_to_restore_from)
@@ -459,7 +467,7 @@ public class BackupPreferenceFragment extends PreferenceFragmentCompat implement
 
 		final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.select_dialog_singlechoice);
 		final DateFormat dateFormatter = SimpleDateFormat.getDateTimeInstance();
-		for (File backupFile : BackupManager.getBackupList(bookUID)) {
+		for (File backupFile : mRepository.getBackupList(bookUID)) {
 			long time = Exporter.getExportTime(backupFile.getName());
 			if (time > 0)
 				arrayAdapter.add(dateFormatter.format(new Date(time)));
@@ -479,7 +487,7 @@ public class BackupPreferenceFragment extends PreferenceFragmentCompat implement
 		restoreDialogBuilder.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
-				File backupFile = BackupManager.getBackupList(bookUID).get(which);
+				File backupFile = mRepository.getBackupList(bookUID).get(which);
 				ProgressDialog progressDialog = new ProgressDialog(getActivity());
 				ImportAsyncUtil.importDataSingle(getActivity(),Uri.fromFile(backupFile))
 						.subscribeOn(Schedulers.io())

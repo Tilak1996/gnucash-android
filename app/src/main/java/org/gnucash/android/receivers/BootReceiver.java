@@ -21,7 +21,9 @@ import android.content.Context;
 import android.content.Intent;
 
 import org.gnucash.android.app.GnuCashApplication;
-import org.gnucash.android.util.BackupManager;
+import org.gnucash.android.di.GnuCashEntryPoint;
+
+import dagger.hilt.android.EntryPointAccessors;
 
 /**
  * Receiver which is called when the device finishes booting.
@@ -33,6 +35,7 @@ public class BootReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         GnuCashApplication.startScheduledActionExecutionService(context);
-        BackupManager.schedulePeriodicBackups(context);
+        EntryPointAccessors.fromApplication(context, GnuCashEntryPoint.class).repository()
+                .schedulePeriodicBackups(context);
     }
 }

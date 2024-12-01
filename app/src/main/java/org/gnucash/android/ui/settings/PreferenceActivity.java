@@ -36,9 +36,12 @@ import org.gnucash.android.app.GnuCashApplication;
 import org.gnucash.android.model.db.adapter.BooksDbAdapter;
 import org.gnucash.android.ui.passcode.PasscodeLockActivity;
 
+import dagger.hilt.android.AndroidEntryPoint;
+
 /**
  * Activity for unified preferences
  */
+@AndroidEntryPoint
 public class PreferenceActivity extends PasscodeLockActivity implements
         PreferenceFragmentCompat.OnPreferenceStartFragmentCallback{
 

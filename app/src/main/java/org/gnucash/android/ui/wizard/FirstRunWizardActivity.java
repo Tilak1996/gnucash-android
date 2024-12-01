@@ -46,6 +46,7 @@ import com.tech.freak.wizardpager.ui.StepPagerStrip;
 
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
+import org.gnucash.android.model.Repository;
 import org.gnucash.android.model.db.adapter.BooksDbAdapter;
 import org.gnucash.android.ui.account.AccountsActivity;
 import org.gnucash.android.ui.util.TaskDelegate;
@@ -53,9 +54,14 @@ import org.gnucash.android.ui.util.TaskDelegate;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
+
 /**
  * Activity for managing the wizard displayed upon first run of the application
  */
+@AndroidEntryPoint
 public class FirstRunWizardActivity extends AppCompatActivity implements
         PageFragmentCallbacks, ReviewFragment.Callbacks, ModelCallbacks {
 
@@ -75,6 +81,9 @@ public class FirstRunWizardActivity extends AppCompatActivity implements
     private List<Page> mCurrentPageSequence;
     private String mAccountOptions;
     private String mCurrencyCode;
+
+    @Inject
+    Repository mRepository;
 
 
     public void onCreate(Bundle savedInstanceState) {
@@ -267,7 +276,7 @@ public class FirstRunWizardActivity extends AppCompatActivity implements
         switch (requestCode){
             case AccountsActivity.REQUEST_PICK_ACCOUNTS_FILE:
                 if (resultCode == Activity.RESULT_OK && data != null) {
-                    AccountsActivity.importXmlFileFromIntent(this, data, new TaskDelegate() {
+                    mRepository.importXmlFileFromIntent(this, data, new TaskDelegate() {
                         @Override
                         public void onTaskComplete() {
                             finish();

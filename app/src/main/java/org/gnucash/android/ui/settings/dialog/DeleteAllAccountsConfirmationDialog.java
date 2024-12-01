@@ -23,9 +23,12 @@ import android.os.Bundle;
 import android.widget.Toast;
 
 import org.gnucash.android.R;
+import org.gnucash.android.di.GnuCashEntryPoint;
+import org.gnucash.android.model.Repository;
 import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
 import org.gnucash.android.ui.homescreen.WidgetConfigurationActivity;
-import org.gnucash.android.util.BackupManager;
+
+import dagger.hilt.android.EntryPointAccessors;
 
 /**
  * Confirmation dialog for deleting all accounts from the system.
@@ -35,6 +38,8 @@ import org.gnucash.android.util.BackupManager;
  */
 public class DeleteAllAccountsConfirmationDialog extends DoubleConfirmationDialog {
 
+    private Repository mRepository;
+
     public static DeleteAllAccountsConfirmationDialog newInstance() {
         DeleteAllAccountsConfirmationDialog frag = new DeleteAllAccountsConfirmationDialog();
         return frag;
@@ -42,6 +47,9 @@ public class DeleteAllAccountsConfirmationDialog extends DoubleConfirmationDialo
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
+        if(mRepository == null) {
+            mRepository = EntryPointAccessors.fromActivity(getActivity(), GnuCashEntryPoint.class).repository();
+        }
         return getDialogBuilder()
                 .setIcon(android.R.drawable.ic_delete)
                 .setTitle(R.string.title_confirm_delete).setMessage(R.string.confirm_delete_all_accounts)
@@ -49,7 +57,7 @@ public class DeleteAllAccountsConfirmationDialog extends DoubleConfirmationDialo
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int whichButton) {
                                 Context context = getDialog().getContext();
-                                BackupManager.backupActiveBook();
+                                mRepository.backupActiveBook();
                                 AccountsDbAdapter.getInstance().deleteAllRecords();
                                 Toast.makeText(context, R.string.toast_all_accounts_deleted, Toast.LENGTH_SHORT).show();
                                 WidgetConfigurationActivity.updateAllWidgets(context);

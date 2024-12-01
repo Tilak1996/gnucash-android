@@ -41,18 +41,11 @@ import org.gnucash.android.model.export.ExportParams;
 import org.gnucash.android.model.data.Book;
 import org.gnucash.android.model.data.ScheduledAction;
 import org.gnucash.android.model.data.Transaction;
-import org.gnucash.android.util.BackupManager;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.core.SingleObserver;
-import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 
 /**
  * Service for running scheduled events.
