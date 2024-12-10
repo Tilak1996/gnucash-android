@@ -38,6 +38,7 @@ android {
         buildConfigField "String", "BUILD_TIME", "\"${buildTime()}\""
         buildFeatures {
             buildConfig true
+            viewBinding true
         }
 
         multiDexEnabled true

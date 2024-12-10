@@ -1,167 +1,121 @@
-/*
- * Copyright (c) 2015 Oleksandr Tyshkovets <olexandr.tyshkovets@gmail.com>
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+package org.gnucash.android.ui.settings
 
-package org.gnucash.android.ui.settings;
+import android.content.SharedPreferences
+import android.os.Bundle
+import android.util.Log
+import android.view.MenuItem
+import androidx.fragment.app.Fragment
+import androidx.preference.Preference
+import androidx.preference.PreferenceFragmentCompat
+import dagger.hilt.android.AndroidEntryPoint
+import org.gnucash.android.R
+import org.gnucash.android.app.GnuCashApplication
+import org.gnucash.android.databinding.ActivitySettingsBinding
+import org.gnucash.android.model.db.adapter.BooksDbAdapter
+import org.gnucash.android.ui.passcode.PasscodeLockActivity
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.os.Bundle;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.slidingpanelayout.widget.SlidingPaneLayout;
-import androidx.appcompat.app.ActionBar;
-import androidx.preference.Preference;
-import androidx.preference.PreferenceFragmentCompat;
-import androidx.preference.PreferenceManager;
-import android.view.MenuItem;
-import android.view.View;
-
-import org.gnucash.android.R;
-import org.gnucash.android.app.GnuCashApplication;
-import org.gnucash.android.model.db.adapter.BooksDbAdapter;
-import org.gnucash.android.ui.passcode.PasscodeLockActivity;
-
-import dagger.hilt.android.AndroidEntryPoint;
-
-/**
- * Activity for unified preferences
- */
 @AndroidEntryPoint
-public class PreferenceActivity extends PasscodeLockActivity implements
-        PreferenceFragmentCompat.OnPreferenceStartFragmentCallback{
+class PreferenceActivity: PasscodeLockActivity(),
+    PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
 
-    public static final String ACTION_MANAGE_BOOKS = "org.gnucash.android.intent.action.MANAGE_BOOKS";
+    private lateinit var binding: ActivitySettingsBinding
 
-    private SlidingPaneLayout mSlidingPaneLayout;
+    override fun onCreate(savedInstanceState: Bundle?) {
+        Log.i(TAG,"onCreate")
+        super.onCreate(savedInstanceState)
+        binding = ActivitySettingsBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        val actionBar = checkNotNull(supportActionBar)
 
-    @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_settings);
-
-        mSlidingPaneLayout = findViewById(R.id.slidingpane_layout);
-
-        mSlidingPaneLayout.setPanelSlideListener(new SlidingPaneLayout.PanelSlideListener() {
-            @Override
-            public void onPanelSlide(View panel, float slideOffset) {
-                //nothing to see here, move along
-            }
-
-            @Override
-            public void onPanelOpened(View panel) {
-                ActionBar actionBar = getSupportActionBar();
-                assert actionBar != null;
-                actionBar.setTitle(R.string.title_settings);
-            }
-
-            @Override
-            public void onPanelClosed(View panel) {
-                //nothing to see here, move along
-            }
-        });
-
-        String action = getIntent().getAction();
-        if (action != null && action.equals(ACTION_MANAGE_BOOKS)){
-            loadFragment(new BookManagerFragment());
-            mSlidingPaneLayout.closePane();
+        val action = intent.action
+        if (action != null && action == ACTION_MANAGE_BOOKS) {
+            loadFragment(BookManagerFragment())
         } else {
-            mSlidingPaneLayout.openPane();
-            loadFragment(new GeneralPreferenceFragment());
+            loadFragment(GeneralPreferenceFragment())
         }
 
-        ActionBar actionBar = getSupportActionBar();
-        assert actionBar != null;
-        actionBar.setTitle(R.string.title_settings);
-        actionBar.setHomeButtonEnabled(true);
-        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.apply {
+            title = getString(R.string.title_settings)
+            setHomeButtonEnabled(true)
+            setDisplayHomeAsUpEnabled(true)
+        }
     }
 
-    @Override
-    public boolean onPreferenceStartFragment(PreferenceFragmentCompat caller, Preference pref) {
-        String key = pref.getKey();
-        Fragment fragment = null;
+    override fun onPreferenceStartFragment(
+        caller: PreferenceFragmentCompat?,
+        pref: Preference): Boolean {
+        Log.i(TAG,"onPreferenceStartFragment")
+        val fragment: Fragment?
         try {
-            Class<?> clazz = Class.forName(pref.getFragment());
-            fragment = (Fragment) clazz.newInstance();
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
+            val clazz = Class.forName(pref.fragment)
+            fragment = clazz.newInstance() as Fragment
+        } catch (e: ClassNotFoundException) {
+            e.printStackTrace()
             //if we do not have a matching class, do nothing
-            return false;
+            return false
+        } catch (e: InstantiationException) {
+            e.printStackTrace()
+            return false
+        } catch (e: IllegalAccessException) {
+            e.printStackTrace()
+            return false
         }
-        loadFragment(fragment);
-        mSlidingPaneLayout.closePane();
-        return false;
+        loadFragment(fragment)
+        return false
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        Log.i(TAG,"onOptionsItemSelected: ${item.itemId}")
+        when (item.itemId) {
+            android.R.id.home -> {
+                val fm = fragmentManager
+                if (fm.backStackEntryCount > 0) {
+                    fm.popBackStack()
+                } else {
+                    finish()
+                }
+                return true
+            }
+
+            else -> return false
+        }
     }
 
     /**
      * Load the provided fragment into the right pane, replacing the previous one
      * @param fragment BaseReportFragment instance
      */
-    private void loadFragment(Fragment fragment) {
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager
-                .beginTransaction();
-
-        fragmentTransaction.replace(R.id.fragment_container, fragment);
-        fragmentTransaction.commit();
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                android.app.FragmentManager fm = getFragmentManager();
-                if (fm.getBackStackEntryCount() > 0) {
-                    fm.popBackStack();
-                } else {
-                    finish();
-                }
-                return true;
-
-            default:
-                return false;
+    private fun loadFragment(fragment: Fragment) {
+        Log.i(TAG,"loadFragment")
+        supportFragmentManager.beginTransaction().apply {
+            replace(R.id.fragment_container, fragment)
+            commit()
         }
     }
 
-    /**
-     * Returns the shared preferences file for the currently active book.
-     * Should be used instead of {@link PreferenceManager#getDefaultSharedPreferences(Context)}
-     * @return Shared preferences file
-     */
-    public static SharedPreferences getActiveBookSharedPreferences(){
-        return getBookSharedPreferences(BooksDbAdapter.getInstance().getActiveBookUID());
-    }
+    companion object {
 
-    /**
-     * Return the {@link SharedPreferences} for a specific book
-     * @param bookUID GUID of the book
-     * @return Shared preferences
-     */
-    public static SharedPreferences getBookSharedPreferences(String bookUID){
-        Context context = GnuCashApplication.getAppContext();
-        return context.getSharedPreferences(bookUID, Context.MODE_PRIVATE);
-    }
+        const val TAG = "PreferenceActivity"
 
-    @Override
-    public void onBackPressed() {
-        if (mSlidingPaneLayout.isOpen())
-            super.onBackPressed();
-        else
-            mSlidingPaneLayout.openPane();
+        const val ACTION_MANAGE_BOOKS: String = "org.gnucash.android.intent.action.MANAGE_BOOKS"
+
+        // TODO Get both getActiveBookSharedPreferences and getBookSharedPreferences and move them in
+        //  repository.
+        /**
+         * Return the [SharedPreferences] for a specific book
+         * @param bookUID GUID of the book
+         * @return Shared preferences
+         */
+        @JvmStatic
+        fun getBookSharedPreferences(bookUID: String?): SharedPreferences =
+            GnuCashApplication.getAppContext().getSharedPreferences(bookUID, MODE_PRIVATE)
+        /**
+         * Returns the shared preferences file for the currently active book.
+         * Should be used instead of [PreferenceManager.getDefaultSharedPreferences]
+         * @return Shared preferences file
+         */
+        @JvmStatic
+        fun getActiveBookSharedPreferences() =
+            getBookSharedPreferences(BooksDbAdapter.getInstance().activeBookUID)
     }
 }

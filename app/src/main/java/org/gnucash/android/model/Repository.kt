@@ -23,7 +23,7 @@ import javax.inject.Inject
 class Repository @Inject constructor(
     @ApplicationContext private val context: Context,
     val booksDbAdapter: BooksDbAdapter,
-    val backupManager: BackupManager
+    private val backupManager: BackupManager
 ) {
 
     fun backupAllBooks() = backupManager.backupAllBooks()

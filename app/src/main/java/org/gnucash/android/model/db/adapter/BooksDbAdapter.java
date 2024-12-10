@@ -27,6 +27,8 @@ import android.util.Log;
 
 import org.gnucash.android.R;
 import org.gnucash.android.app.GnuCashApplication;
+import org.gnucash.android.di.GnuCashEntryPoint;
+import org.gnucash.android.model.PreferencesManager;
 import org.gnucash.android.model.db.DatabaseHelper;
 import org.gnucash.android.model.db.DatabaseSchema.BookEntry;
 import org.gnucash.android.model.data.Book;
@@ -36,10 +38,14 @@ import org.gnucash.android.util.TimestampHelper;
 import java.util.ArrayList;
 import java.util.List;
 
+import dagger.hilt.android.EntryPointAccessors;
+
 /**
  * Database adapter for creating/modifying book entries
  */
 public class BooksDbAdapter extends DatabaseAdapter<Book> {
+
+    private PreferencesManager mPreferencesManager;
 
     /**
      * Opens the database adapter with an existing database
@@ -55,6 +61,10 @@ public class BooksDbAdapter extends DatabaseAdapter<Book> {
                 BookEntry.COLUMN_UID,
                 BookEntry.COLUMN_LAST_SYNC
         });
+
+        mPreferencesManager = EntryPointAccessors.
+                fromApplication(GnuCashApplication.getAppContext(), GnuCashEntryPoint.class)
+                .preferencesManager();
     }
 
     /**
@@ -113,7 +123,7 @@ public class BooksDbAdapter extends DatabaseAdapter<Book> {
         if (result) //delete the db entry only if the file deletion was successful
             result &= deleteRecord(bookUID);
 
-        PreferenceActivity.getBookSharedPreferences(bookUID).edit().clear().apply();
+        mPreferencesManager.getBookSharedPreferences(bookUID).edit().clear().apply();
 
         return result;
     }

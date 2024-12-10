@@ -26,6 +26,7 @@ import androidx.annotation.Nullable;
 import android.util.Log;
 
 import org.gnucash.android.app.GnuCashApplication;
+import org.gnucash.android.model.PreferencesManager;
 import org.gnucash.android.model.db.adapter.BooksDbAdapter;
 import org.gnucash.android.model.export.ExportFormat;
 import org.gnucash.android.model.export.ExportParams;
@@ -61,10 +62,13 @@ public class BackupManager {
     public static final String KEY_BACKUP_FILE = "book_backup_file_key";
 
     private Context mContext;
+    private PreferencesManager mPreferencesManager;
 
     @Inject
-    public BackupManager(@ApplicationContext Context context) {
+    public BackupManager(@ApplicationContext Context context,
+     PreferencesManager preferencesManager) {
         mContext = context;
+        mPreferencesManager = preferencesManager;
     }
 
     /**
@@ -175,7 +179,7 @@ public class BackupManager {
      */
     @Nullable
     public String getBookBackupFileUri(String bookUID){
-        SharedPreferences sharedPreferences = PreferenceActivity.getBookSharedPreferences(bookUID);
+        SharedPreferences sharedPreferences = mPreferencesManager.getBookSharedPreferences(bookUID);
         return sharedPreferences.getString(KEY_BACKUP_FILE, null);
     }
 

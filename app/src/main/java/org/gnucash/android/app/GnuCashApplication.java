@@ -33,6 +33,7 @@ import androidx.preference.PreferenceManager;
 
 import org.gnucash.android.BuildConfig;
 import org.gnucash.android.R;
+import org.gnucash.android.model.PreferencesManager;
 import org.gnucash.android.model.db.BookDbHelper;
 import org.gnucash.android.model.db.DatabaseHelper;
 import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
@@ -53,6 +54,8 @@ import org.gnucash.android.ui.settings.PreferenceActivity;
 
 import java.util.Currency;
 import java.util.Locale;
+
+import javax.inject.Inject;
 
 import dagger.hilt.android.HiltAndroidApp;
 
@@ -102,6 +105,9 @@ public class GnuCashApplication extends MultiDexApplication {
 
     private static BooksDbAdapter mBooksDbAdapter;
     private static DatabaseHelper mDbHelper;
+
+    @Inject
+    PreferencesManager mPreferenceManager;
 
     /**
      * Returns darker version of specified <code>color</code>.
