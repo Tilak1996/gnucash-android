@@ -4,7 +4,10 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
-import androidx.fragment.app.Fragment
+import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import dagger.hilt.android.AndroidEntryPoint
@@ -15,8 +18,7 @@ import org.gnucash.android.model.db.adapter.BooksDbAdapter
 import org.gnucash.android.ui.passcode.PasscodeLockActivity
 
 @AndroidEntryPoint
-class PreferenceActivity: PasscodeLockActivity(),
-    PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
+class PreferenceActivity: PasscodeLockActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
 
@@ -26,71 +28,23 @@ class PreferenceActivity: PasscodeLockActivity(),
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         val actionBar = checkNotNull(supportActionBar)
-
-        val action = intent.action
-        if (action != null && action == ACTION_MANAGE_BOOKS) {
-            loadFragment(BookManagerFragment())
-        } else {
-            loadFragment(GeneralPreferenceFragment())
-        }
-
         actionBar.apply {
             title = getString(R.string.title_settings)
             setHomeButtonEnabled(true)
             setDisplayHomeAsUpEnabled(true)
         }
-    }
 
-    override fun onPreferenceStartFragment(
-        caller: PreferenceFragmentCompat?,
-        pref: Preference): Boolean {
-        Log.i(TAG,"onPreferenceStartFragment")
-        val fragment: Fragment?
-        try {
-            val clazz = Class.forName(pref.fragment)
-            fragment = clazz.newInstance() as Fragment
-        } catch (e: ClassNotFoundException) {
-            e.printStackTrace()
-            //if we do not have a matching class, do nothing
-            return false
-        } catch (e: InstantiationException) {
-            e.printStackTrace()
-            return false
-        } catch (e: IllegalAccessException) {
-            e.printStackTrace()
-            return false
-        }
-        loadFragment(fragment)
-        return false
-    }
+        binding.navHostFragment?.let {
+            val navController = it.findNavController()
+            val appBarConfiguration = AppBarConfiguration(setOf(R.id.preferenceHeadersFragment))
+            setupActionBarWithNavController(navController, appBarConfiguration)
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        Log.i(TAG,"onOptionsItemSelected: ${item.itemId}")
-        when (item.itemId) {
-            android.R.id.home -> {
-                val fm = fragmentManager
-                if (fm.backStackEntryCount > 0) {
-                    fm.popBackStack()
-                } else {
-                    finish()
-                }
-                return true
+            val action = intent.action
+            if (action != null && action == ACTION_MANAGE_BOOKS) {
+                navController.navigate(R.id.action_preferenceHeadersFragment_to_bookManagerFragment)
             }
-
-            else -> return false
         }
-    }
 
-    /**
-     * Load the provided fragment into the right pane, replacing the previous one
-     * @param fragment BaseReportFragment instance
-     */
-    private fun loadFragment(fragment: Fragment) {
-        Log.i(TAG,"loadFragment")
-        supportFragmentManager.beginTransaction().apply {
-            replace(R.id.fragment_container, fragment)
-            commit()
-        }
     }
 
     companion object {

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/prefs_navigation"
+    app:startDestination="@id/preferenceHeadersFragment">
+
+    <fragment
+        android:id="@+id/preferenceHeadersFragment"
+        android:name="org.gnucash.android.ui.settings.PreferenceHeadersFragment"
+        android:label="PreferenceHeadersFragment" >
+        <action
+            android:id="@+id/action_preferenceHeadersFragment_to_generalPreferenceFragment"
+            app:destination="@id/generalPreferenceFragment" />
+        <action
+            android:id="@+id/action_preferenceHeadersFragment_to_bookManagerFragment"
+            app:destination="@id/bookManagerFragment" />
+        <action
+            android:id="@+id/action_preferenceHeadersFragment_to_aboutPreferenceFragment"
+            app:destination="@id/aboutPreferenceFragment" />
+        <action
+            android:id="@+id/action_preferenceHeadersFragment_to_transactionsPreferenceFragment"
+            app:destination="@id/transactionsPreferenceFragment" />
+        <action
+            android:id="@+id/action_preferenceHeadersFragment_to_backupPreferenceFragment"
+            app:destination="@id/backupPreferenceFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/generalPreferenceFragment"
+        android:name="org.gnucash.android.ui.settings.GeneralPreferenceFragment"
+        android:label="GeneralPreferenceFragment" />
+    <fragment
+        android:id="@+id/bookManagerFragment"
+        android:name="org.gnucash.android.ui.settings.BookManagerFragment"
+        android:label="BookManagerFragment" />
+    <fragment
+        android:id="@+id/transactionsPreferenceFragment"
+        android:name="org.gnucash.android.ui.settings.TransactionsPreferenceFragment"
+        android:label="TransactionsPreferenceFragment" />
+    <fragment
+        android:id="@+id/aboutPreferenceFragment"
+        android:name="org.gnucash.android.ui.settings.AboutPreferenceFragment"
+        android:label="AboutPreferenceFragment" />
+    <fragment
+        android:id="@+id/backupPreferenceFragment"
+        android:name="org.gnucash.android.ui.settings.BackupPreferenceFragment"
+        android:label="BackupPreferenceFragment" />
+</navigation>
