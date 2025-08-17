@@ -3,13 +3,13 @@ package org.gnucash.android.ui.settings
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
-import android.view.MenuItem
+import android.widget.TextView
+import androidx.navigation.NavController
+import androidx.navigation.Navigation
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.preference.Preference
-import androidx.preference.PreferenceFragmentCompat
 import dagger.hilt.android.AndroidEntryPoint
 import org.gnucash.android.R
 import org.gnucash.android.app.GnuCashApplication
@@ -21,6 +21,7 @@ import org.gnucash.android.ui.passcode.PasscodeLockActivity
 class PreferenceActivity: PasscodeLockActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
+    private lateinit var navController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.i(TAG,"onCreate")
@@ -34,15 +35,15 @@ class PreferenceActivity: PasscodeLockActivity() {
             setDisplayHomeAsUpEnabled(true)
         }
 
-        binding.navHostFragment?.let {
-            val navController = it.findNavController()
-            val appBarConfiguration = AppBarConfiguration(setOf(R.id.preferenceHeadersFragment))
-            setupActionBarWithNavController(navController, appBarConfiguration)
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        navController = navHostFragment.navController
 
-            val action = intent.action
-            if (action != null && action == ACTION_MANAGE_BOOKS) {
-                navController.navigate(R.id.action_preferenceHeadersFragment_to_bookManagerFragment)
-            }
+        val appBarConfiguration = AppBarConfiguration(setOf(R.id.preferenceHeadersFragment))
+        setupActionBarWithNavController(navController, appBarConfiguration)
+
+        val action = intent.action
+        if (action != null && action == ACTION_MANAGE_BOOKS) {
+            navController.navigate(R.id.action_preferenceHeadersFragment_to_bookManagerFragment)
         }
 
     }

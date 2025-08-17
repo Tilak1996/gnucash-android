@@ -7,13 +7,16 @@
     <fragment
         android:id="@+id/preferenceHeadersFragment"
         android:name="org.gnucash.android.ui.settings.PreferenceHeadersFragment"
-        android:label="PreferenceHeadersFragment" >
+        android:label="@string/nav_menu_settings" >
         <action
             android:id="@+id/action_preferenceHeadersFragment_to_generalPreferenceFragment"
             app:destination="@id/generalPreferenceFragment" />
         <action
             android:id="@+id/action_preferenceHeadersFragment_to_bookManagerFragment"
             app:destination="@id/bookManagerFragment" />
+        <action
+            android:id="@+id/action_preferenceHeadersFragment_to_accountPreferencesFragment"
+            app:destination="@id/accountPreferencesFragment" />
         <action
             android:id="@+id/action_preferenceHeadersFragment_to_aboutPreferenceFragment"
             app:destination="@id/aboutPreferenceFragment" />
@@ -27,21 +30,25 @@
     <fragment
         android:id="@+id/generalPreferenceFragment"
         android:name="org.gnucash.android.ui.settings.GeneralPreferenceFragment"
-        android:label="GeneralPreferenceFragment" />
+        android:label="@string/header_general_settings" />
     <fragment
         android:id="@+id/bookManagerFragment"
         android:name="org.gnucash.android.ui.settings.BookManagerFragment"
-        android:label="BookManagerFragment" />
+        android:label="@string/title_manage_books" />
+    <fragment
+        android:id="@+id/accountPreferencesFragment"
+        android:name="org.gnucash.android.ui.settings.AccountPreferencesFragment"
+        android:label="@string/header_account_settings" />
     <fragment
         android:id="@+id/transactionsPreferenceFragment"
         android:name="org.gnucash.android.ui.settings.TransactionsPreferenceFragment"
-        android:label="TransactionsPreferenceFragment" />
+        android:label="@string/header_transaction_settings" />
     <fragment
         android:id="@+id/aboutPreferenceFragment"
         android:name="org.gnucash.android.ui.settings.AboutPreferenceFragment"
-        android:label="AboutPreferenceFragment" />
+        android:label="@string/header_about_gnucash" />
     <fragment
         android:id="@+id/backupPreferenceFragment"
         android:name="org.gnucash.android.ui.settings.BackupPreferenceFragment"
-        android:label="BackupPreferenceFragment" />
+        android:label="@string/header_backup_and_export_settings" />
 </navigation>
