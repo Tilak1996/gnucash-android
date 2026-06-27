@@ -13,22 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gnucash.android.ui.account;
+package org.gnucash.android.ui.account
 
 /**
  * Interface for implemented by activities which wish to be notified when
  * an action on account has been requested
  * This is typically used for Fragment-to-Activity communication
  * 
- * @author Ngewi Fet <ngewif@gmail.com>
+ * @author Ngewi Fet <ngewif></ngewif>@gmail.com>
  */
-public interface OnAccountClickedListener {
-
-	/**
-	 * Callback when an account is selected (clicked) from in a list of accounts
-	 * @param accountUID GUID of the selected account
-	 */
-	public void accountSelected(String accountUID);
-	
+interface OnAccountClickedListener {
+    /**
+     * Callback when an account is selected (clicked) from in a list of accounts
+     * @param accountUID GUID of the selected account
+     */
+    fun accountSelected(accountUID: String?)
 }

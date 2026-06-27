@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gnucash.android.ui.util;
+package org.gnucash.android.ui.util
 
 /**
  * Interface for delegates which can be used to execute functions when import is complete
- * @author Ngewi Fet <ngewif@gmail.com>
+ * @author Ngewi Fet <ngewif></ngewif>@gmail.com>
  */
-public interface TaskDelegate {
-
+interface TaskDelegate {
     /**
      * Function to execute on completion of task
      */
-    public void onTaskComplete();
+    fun onTaskComplete()
 }

@@ -13,48 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gnucash.android.ui.budget;
+package org.gnucash.android.ui.budget
 
-import android.content.Intent;
-import android.os.Bundle;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import android.view.View;
-
-import org.gnucash.android.R;
-import org.gnucash.android.app.GnuCashApplication;
-import org.gnucash.android.ui.common.BaseDrawerActivity;
-import org.gnucash.android.ui.common.FormActivity;
-import org.gnucash.android.ui.common.UxArgument;
+import android.content.Intent
+import android.graphics.Color
+import android.os.Bundle
+import android.view.View
+import org.gnucash.android.R
+import org.gnucash.android.app.GnuCashApplication
+import org.gnucash.android.ui.common.BaseDrawerActivity
+import org.gnucash.android.ui.common.FormActivity
+import org.gnucash.android.ui.common.UxArgument
 
 /**
  * Activity for managing display and editing of budgets
  */
-public class BudgetsActivity extends BaseDrawerActivity {
-
-    public static final int REQUEST_CREATE_BUDGET = 0xA;
-
-    @Override
-    public int getContentView() {
-        return R.layout.activity_budgets;
+class BudgetsActivity : BaseDrawerActivity() {
+    override fun getContentView(): Int {
+        return R.layout.activity_budgets
     }
 
-    @Override
-    public int getTitleRes() {
-        return R.string.title_budgets;
+    override fun getTitleRes(): Int {
+        return R.string.title_budgets
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
         if (savedInstanceState == null) {
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            FragmentTransaction fragmentTransaction = fragmentManager
-                    .beginTransaction();
+            val fragmentManager = getSupportFragmentManager()
+            val fragmentTransaction = fragmentManager
+                .beginTransaction()
 
-            fragmentTransaction.replace(R.id.fragment_container, new BudgetListFragment());
-            fragmentTransaction.commit();
+            fragmentTransaction.replace(R.id.fragment_container, BudgetListFragment())
+            fragmentTransaction.commit()
         }
     }
 
@@ -62,19 +54,31 @@ public class BudgetsActivity extends BaseDrawerActivity {
      * Callback when create budget floating action button is clicked
      * @param view View which was clicked
      */
-    public void onCreateBudgetClick(View view){
-        Intent addAccountIntent = new Intent(BudgetsActivity.this, FormActivity.class);
-        addAccountIntent.setAction(Intent.ACTION_INSERT_OR_EDIT);
-        addAccountIntent.putExtra(UxArgument.FORM_TYPE, FormActivity.FormType.BUDGET.name());
-        startActivityForResult(addAccountIntent, REQUEST_CREATE_BUDGET);
+    fun onCreateBudgetClick(view: View?) {
+        val addAccountIntent = Intent(this@BudgetsActivity, FormActivity::class.java)
+        addAccountIntent.setAction(Intent.ACTION_INSERT_OR_EDIT)
+        addAccountIntent.putExtra(UxArgument.FORM_TYPE, FormActivity.FormType.BUDGET.name)
+        startActivityForResult(addAccountIntent, REQUEST_CREATE_BUDGET)
     }
 
-    /**
-     * Returns a color between red and green depending on the value parameter
-     * @param value Value between 0 and 1 indicating the red to green ratio
-     * @return Color between red and green
-     */
-    public static int getBudgetProgressColor(double value){
-        return GnuCashApplication.darken(android.graphics.Color.HSVToColor(new float[]{(float)value*120f,1f,1f}));
+    companion object {
+        const val REQUEST_CREATE_BUDGET: Int = 0xA
+
+        /**
+         * Returns a color between red and green depending on the value parameter
+         * @param value Value between 0 and 1 indicating the red to green ratio
+         * @return Color between red and green
+         */
+        fun getBudgetProgressColor(value: Double): Int {
+            return GnuCashApplication.darken(
+                Color.HSVToColor(
+                    floatArrayOf(
+                        value.toFloat() * 120f,
+                        1f,
+                        1f
+                    )
+                )
+            )
+        }
     }
 }

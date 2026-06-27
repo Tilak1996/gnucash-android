@@ -13,253 +13,214 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gnucash.android.ui.account
 
-package org.gnucash.android.ui.account;
-
-import android.app.Activity;
-import android.app.SearchManager;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.Intent;
-import android.content.res.Configuration;
-import android.database.Cursor;
-import android.graphics.Color;
-import android.os.AsyncTask;
-import android.os.Bundle;
-
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.widget.SearchView;
-import androidx.core.view.MenuItemCompat;
-import androidx.fragment.app.Fragment;
-import androidx.loader.app.LoaderManager.LoaderCallbacks;
-import androidx.loader.content.Loader;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.appcompat.widget.PopupMenu;
-import androidx.recyclerview.widget.RecyclerView;
-import android.text.TextUtils;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-
-import org.gnucash.android.R;
-import org.gnucash.android.app.GnuCashApplication;
-import org.gnucash.android.model.Repository;
-import org.gnucash.android.model.db.DatabaseCursorLoader;
-import org.gnucash.android.model.db.DatabaseSchema;
-import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
-import org.gnucash.android.model.db.adapter.BudgetsDbAdapter;
-import org.gnucash.android.model.data.Account;
-import org.gnucash.android.model.data.Budget;
-import org.gnucash.android.model.data.Money;
-import org.gnucash.android.ui.common.FormActivity;
-import org.gnucash.android.ui.common.Refreshable;
-import org.gnucash.android.ui.common.UxArgument;
-import org.gnucash.android.ui.util.AccountBalanceTask;
-import org.gnucash.android.ui.util.CursorRecyclerAdapter;
-import org.gnucash.android.ui.util.widget.EmptyRecyclerView;
-
-import java.util.List;
-
-import javax.inject.Inject;
-
-import dagger.hilt.android.AndroidEntryPoint;
+import android.app.Activity
+import android.app.SearchManager
+import android.content.ContentValues
+import android.content.Context
+import android.content.Intent
+import android.content.res.Configuration
+import android.database.Cursor
+import android.graphics.Color
+import android.os.AsyncTask
+import android.os.Bundle
+import android.text.TextUtils
+import android.util.Log
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.ProgressBar
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.PopupMenu
+import androidx.appcompat.widget.SearchView
+import androidx.core.view.MenuItemCompat
+import androidx.fragment.app.Fragment
+import androidx.loader.app.LoaderManager
+import androidx.loader.content.Loader
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import dagger.hilt.android.AndroidEntryPoint
+import org.gnucash.android.R
+import org.gnucash.android.app.GnuCashApplication
+import org.gnucash.android.model.Repository
+import org.gnucash.android.model.data.Account
+import org.gnucash.android.model.db.DatabaseCursorLoader
+import org.gnucash.android.model.db.DatabaseSchema
+import org.gnucash.android.model.db.adapter.AccountsDbAdapter
+import org.gnucash.android.model.db.adapter.BudgetsDbAdapter
+import org.gnucash.android.ui.account.AccountsListFragment.AccountRecyclerAdapter.AccountViewHolder
+import org.gnucash.android.ui.common.FormActivity
+import org.gnucash.android.ui.common.Refreshable
+import org.gnucash.android.ui.common.UxArgument
+import org.gnucash.android.ui.util.AccountBalanceTask
+import org.gnucash.android.ui.util.CursorRecyclerAdapter
+import org.gnucash.android.ui.util.widget.EmptyRecyclerView
+import javax.inject.Inject
 
 /**
  * Fragment for displaying the list of accounts in the database
- *
- * @author Ngewi Fet <ngewif@gmail.com>
+ * 
+ * @author Ngewi Fet <ngewif></ngewif>@gmail.com>
  */
 @AndroidEntryPoint
-public class AccountsListFragment extends Fragment implements
-        Refreshable,
-        LoaderCallbacks<Cursor>,
-        SearchView.OnQueryTextListener,
-        SearchView.OnCloseListener {
-
-    AccountRecyclerAdapter mAccountRecyclerAdapter;
-    private EmptyRecyclerView mRecyclerView;
-    private TextView mEmptyTextView;
+class AccountsListFragment : Fragment(), Refreshable, LoaderManager.LoaderCallbacks<Cursor>,
+    SearchView.OnQueryTextListener, SearchView.OnCloseListener {
+    private lateinit var mAccountRecyclerAdapter: AccountRecyclerAdapter
+    private var mRecyclerView: EmptyRecyclerView? = null
+    private var mEmptyTextView: TextView? = null
 
     @Inject
-    Repository mRepository;
+    var mRepository: Repository? = null
 
     /**
      * Describes the kinds of accounts that should be loaded in the accounts list.
      * This enhances reuse of the accounts list fragment
      */
-    public enum DisplayMode {
+    enum class DisplayMode {
         TOP_LEVEL, RECENT, FAVORITES
     }
 
     /**
      * Field indicating which kind of accounts to load.
-     * Default value is {@link DisplayMode#TOP_LEVEL}
+     * Default value is [DisplayMode.TOP_LEVEL]
      */
-    private DisplayMode mDisplayMode = DisplayMode.TOP_LEVEL;
-
-    /**
-     * Logging tag
-     */
-    protected static final String TAG = "AccountsListFragment";
-
-    /**
-     * Tag to save {@link AccountsListFragment#mDisplayMode} to fragment state
-     */
-    private static final String STATE_DISPLAY_MODE = "mDisplayMode";
+    private var mDisplayMode: DisplayMode? = DisplayMode.TOP_LEVEL
 
     /**
      * Database adapter for loading Account records from the database
      */
-    private AccountsDbAdapter mAccountsDbAdapter;
+    private var mAccountsDbAdapter: AccountsDbAdapter? = null
+
     /**
      * Listener to be notified when an account is clicked
      */
-    private OnAccountClickedListener mAccountSelectedListener;
+    private var mAccountSelectedListener: OnAccountClickedListener? = null
 
     /**
      * GUID of the account whose children will be loaded in the list fragment.
      * If no parent account is specified, then all top-level accounts are loaded.
      */
-    private String mParentAccountUID = null;
+    private var mParentAccountUID: String? = null
 
     /**
      * Filter for which accounts should be displayed. Used by search interface
      */
-    private String mCurrentFilter;
+    private var mCurrentFilter: String? = null
 
     /**
      * Search view for searching accounts
      */
-    private SearchView mSearchView;
+    private var mSearchView: SearchView? = null
 
-    public static AccountsListFragment newInstance(DisplayMode displayMode){
-        AccountsListFragment fragment = new AccountsListFragment();
-        fragment.mDisplayMode = displayMode;
-        return fragment;
-    }
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        val v = inflater.inflate(
+            R.layout.fragment_accounts_list, container,
+            false
+        )
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_accounts_list, container,
-                false);
+        mRecyclerView = v.findViewById<EmptyRecyclerView?>(R.id.account_recycler_view)
+        mEmptyTextView = v.findViewById<TextView?>(R.id.empty_view)
+        mRecyclerView!!.setHasFixedSize(true)
+        mRecyclerView!!.setEmptyView(mEmptyTextView)
 
-        mRecyclerView = v.findViewById(R.id.account_recycler_view);
-        mEmptyTextView = v.findViewById(R.id.empty_view);
-        mRecyclerView.setHasFixedSize(true);
-        mRecyclerView.setEmptyView(mEmptyTextView);
-
-        switch (mDisplayMode){
-
-            case TOP_LEVEL:
-                mEmptyTextView.setText(R.string.label_no_accounts);
-                break;
-            case RECENT:
-                mEmptyTextView.setText(R.string.label_no_recent_accounts);
-                break;
-            case FAVORITES:
-                mEmptyTextView.setText(R.string.label_no_favorite_accounts);
-                break;
+        when (mDisplayMode) {
+            DisplayMode.TOP_LEVEL -> mEmptyTextView!!.setText(R.string.label_no_accounts)
+            DisplayMode.RECENT -> mEmptyTextView!!.setText(R.string.label_no_recent_accounts)
+            DisplayMode.FAVORITES -> mEmptyTextView!!.setText(R.string.label_no_favorite_accounts)
+            else -> {}
         }
 
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            GridLayoutManager gridLayoutManager = new GridLayoutManager(getActivity(), 2);
-            mRecyclerView.setLayoutManager(gridLayoutManager);
+            val gridLayoutManager = GridLayoutManager(getActivity(), 2)
+            mRecyclerView!!.setLayoutManager(gridLayoutManager)
         } else {
-            LinearLayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
-            mRecyclerView.setLayoutManager(mLayoutManager);
+            val mLayoutManager = LinearLayoutManager(getActivity())
+            mRecyclerView!!.setLayoutManager(mLayoutManager)
         }
-        return v;
+        return v
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-        Bundle args = getArguments();
-        if (args != null)
-            mParentAccountUID = args.getString(UxArgument.PARENT_ACCOUNT_UID);
+        val args = getArguments()
+        if (args != null) mParentAccountUID = args.getString(UxArgument.PARENT_ACCOUNT_UID)
 
-        if (savedInstanceState != null)
-            mDisplayMode = (DisplayMode) savedInstanceState.getSerializable(STATE_DISPLAY_MODE);
+        if (savedInstanceState != null) mDisplayMode = savedInstanceState.getSerializable(
+            STATE_DISPLAY_MODE
+        ) as DisplayMode?
     }
 
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
 
-        ActionBar actionbar = ((AppCompatActivity) getActivity()).getSupportActionBar();
-        actionbar.setTitle(R.string.title_accounts);
-        actionbar.setDisplayHomeAsUpEnabled(true);
-        setHasOptionsMenu(true);
+        val actionbar = (getActivity() as AppCompatActivity).getSupportActionBar()
+        actionbar!!.setTitle(R.string.title_accounts)
+        actionbar.setDisplayHomeAsUpEnabled(true)
+        setHasOptionsMenu(true)
 
 
         // specify an adapter (see also next example)
-        mAccountRecyclerAdapter = new AccountRecyclerAdapter(null);
-        mRecyclerView.setAdapter(mAccountRecyclerAdapter);
-
+        mAccountRecyclerAdapter = AccountRecyclerAdapter(null)
+        mRecyclerView!!.setAdapter(mAccountRecyclerAdapter)
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        mAccountsDbAdapter = AccountsDbAdapter.getInstance();
+    override fun onStart() {
+        super.onStart()
+        mAccountsDbAdapter = AccountsDbAdapter.getInstance()
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        refresh();
+    override fun onResume() {
+        super.onResume()
+        refresh()
     }
 
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    override fun onAttach(activity: Activity) {
+        super.onAttach(activity)
         try {
-            mAccountSelectedListener = (OnAccountClickedListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString() + " must implement OnAccountSelectedListener");
+            mAccountSelectedListener = activity as OnAccountClickedListener
+        } catch (e: ClassCastException) {
+            throw ClassCastException(activity.toString() + " must implement OnAccountSelectedListener")
         }
     }
 
-    public void onListItemClick(String accountUID) {
-        mAccountSelectedListener.accountSelected(accountUID);
+    fun onListItemClick(accountUID: String?) {
+        mAccountSelectedListener!!.accountSelected(accountUID)
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == Activity.RESULT_CANCELED)
-            return;
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (resultCode == Activity.RESULT_CANCELED) return
 
-        refresh();
+        refresh()
     }
 
     /**
-     * Delete the account with record ID <code>rowId</code>
+     * Delete the account with record ID `rowId`
      * It shows the delete confirmation dialog if the account has transactions,
      * else deletes the account immediately
      *
      * @param rowId The record ID of the account
      */
-    public void tryDeleteAccount(long rowId) {
-        Account acc = mAccountsDbAdapter.getRecord(rowId);
-        if (acc.getTransactionCount() > 0 || mAccountsDbAdapter.getSubAccountCount(acc.getUID()) > 0) {
-            showConfirmationDialog(rowId);
+    fun tryDeleteAccount(rowId: Long) {
+        val acc = mAccountsDbAdapter!!.getRecord(rowId)
+        if (acc.getTransactionCount() > 0 || mAccountsDbAdapter!!.getSubAccountCount(acc.getUID()) > 0) {
+            showConfirmationDialog(rowId)
         } else {
-            mRepository.backupActiveBook();
+            mRepository!!.backupActiveBook()
             // Avoid calling AccountsDbAdapter.deleteRecord(long). See #654
-            String uid = mAccountsDbAdapter.getUID(rowId);
-            mAccountsDbAdapter.deleteRecord(uid);
-            refresh();
+            val uid = mAccountsDbAdapter!!.getUID(rowId)
+            mAccountsDbAdapter!!.deleteRecord(uid)
+            refresh()
         }
     }
 
@@ -268,163 +229,162 @@ public class AccountsListFragment extends Fragment implements
      *
      * @param id Record ID of account to be deleted after confirmation
      */
-    public void showConfirmationDialog(long id) {
-        DeleteAccountDialogFragment alertFragment =
-                DeleteAccountDialogFragment.newInstance(mAccountsDbAdapter.getUID(id));
-        alertFragment.setTargetFragment(this, 0);
-        alertFragment.show(getActivity().getSupportFragmentManager(), "delete_confirmation_dialog");
+    fun showConfirmationDialog(id: Long) {
+        val alertFragment =
+            DeleteAccountDialogFragment.newInstance(mAccountsDbAdapter!!.getUID(id))
+        alertFragment.setTargetFragment(this, 0)
+        alertFragment.show(
+            requireActivity().getSupportFragmentManager(),
+            "delete_confirmation_dialog"
+        )
     }
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        if (mParentAccountUID != null)
-            inflater.inflate(R.menu.sub_account_actions, menu);
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        if (mParentAccountUID != null) inflater.inflate(R.menu.sub_account_actions, menu)
         else {
-            inflater.inflate(R.menu.account_actions, menu);
+            inflater.inflate(R.menu.account_actions, menu)
+
             // Associate searchable configuration with the SearchView
+            val searchManager =
+                GnuCashApplication.getAppContext()
+                    .getSystemService(Context.SEARCH_SERVICE) as SearchManager
+            mSearchView =
+                MenuItemCompat.getActionView(menu.findItem(R.id.menu_search)) as SearchView?
+            if (mSearchView == null) return
 
-            SearchManager searchManager =
-                    (SearchManager) GnuCashApplication.getAppContext().getSystemService(Context.SEARCH_SERVICE);
-            mSearchView = (SearchView)
-                MenuItemCompat.getActionView(menu.findItem(R.id.menu_search));
-            if (mSearchView == null)
-                return;
-
-            mSearchView.setSearchableInfo(
-                    searchManager.getSearchableInfo(getActivity().getComponentName()));
-            mSearchView.setOnQueryTextListener(this);
-            mSearchView.setOnCloseListener(this);
+            mSearchView!!.setSearchableInfo(
+                searchManager.getSearchableInfo(requireActivity().getComponentName())
+            )
+            mSearchView!!.setOnQueryTextListener(this)
+            mSearchView!!.setOnCloseListener(this)
         }
     }
 
 
-    @Override
     /**
      * Refresh the account list as a sublist of another account
      * @param parentAccountUID GUID of the parent account
      */
-    public void refresh(String parentAccountUID) {
-        getArguments().putString(UxArgument.PARENT_ACCOUNT_UID, parentAccountUID);
-        refresh();
+    override fun refresh(parentAccountUID: String?) {
+        requireArguments().putString(UxArgument.PARENT_ACCOUNT_UID, parentAccountUID)
+        refresh()
     }
 
     /**
-     * Refreshes the list by restarting the {@link DatabaseCursorLoader} associated
+     * Refreshes the list by restarting the [DatabaseCursorLoader] associated
      * with the ListView
      */
-    @Override
-    public void refresh() {
-        getLoaderManager().restartLoader(0, null, this);
+    override fun refresh() {
+        getLoaderManager().restartLoader<Cursor?>(0, null, this)
     }
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putSerializable(STATE_DISPLAY_MODE, mDisplayMode);
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putSerializable(STATE_DISPLAY_MODE, mDisplayMode)
     }
 
     /**
      * Closes any open database adapters used by the list
      */
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (mAccountRecyclerAdapter != null)
-            mAccountRecyclerAdapter.swapCursor(null);
+    override fun onDestroy() {
+        super.onDestroy()
+        mAccountRecyclerAdapter.swapCursor(null)
     }
 
     /**
      * Opens a new activity for creating or editing an account.
-     * If the <code>accountId</code> &lt; 1, then create else edit the account.
+     * If the `accountId` &lt; 1, then create else edit the account.
      * @param accountId Long record ID of account to be edited. Pass 0 to create a new account.
      */
-    public void openCreateOrEditActivity(long accountId){
-        Intent editAccountIntent = new Intent(AccountsListFragment.this.getActivity(), FormActivity.class);
-        editAccountIntent.setAction(Intent.ACTION_INSERT_OR_EDIT);
-        editAccountIntent.putExtra(UxArgument.SELECTED_ACCOUNT_UID, mAccountsDbAdapter.getUID(accountId));
-        editAccountIntent.putExtra(UxArgument.FORM_TYPE, FormActivity.FormType.ACCOUNT.name());
-        startActivityForResult(editAccountIntent, AccountsActivity.REQUEST_EDIT_ACCOUNT);
+    fun openCreateOrEditActivity(accountId: Long) {
+        val editAccountIntent =
+            Intent(this@AccountsListFragment.getActivity(), FormActivity::class.java)
+        editAccountIntent.setAction(Intent.ACTION_INSERT_OR_EDIT)
+        editAccountIntent.putExtra(
+            UxArgument.SELECTED_ACCOUNT_UID,
+            mAccountsDbAdapter!!.getUID(accountId)
+        )
+        editAccountIntent.putExtra(UxArgument.FORM_TYPE, FormActivity.FormType.ACCOUNT.name)
+        startActivityForResult(editAccountIntent, AccountsActivity.REQUEST_EDIT_ACCOUNT)
     }
 
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Log.d(TAG, "Creating the accounts loader");
-        Bundle arguments = getArguments();
-        String accountUID = arguments == null ? null : arguments.getString(UxArgument.PARENT_ACCOUNT_UID);
+    override fun onCreateLoader(id: Int, args: Bundle?): Loader<Cursor?> {
+        Log.d(TAG, "Creating the accounts loader")
+        val arguments = getArguments()
+        val accountUID =
+            if (arguments == null) null else arguments.getString(UxArgument.PARENT_ACCOUNT_UID)
 
-        if (mCurrentFilter != null){
-            return new AccountsCursorLoader(getActivity(), mCurrentFilter);
+        if (mCurrentFilter != null) {
+            return AccountsCursorLoader(getActivity(), mCurrentFilter)
         } else {
-            return new AccountsCursorLoader(this.getActivity(), accountUID, mDisplayMode);
+            return AccountsCursorLoader(this.getActivity(), accountUID, mDisplayMode!!)
         }
     }
 
-    @Override
-    public void onLoadFinished(Loader<Cursor> loaderCursor, Cursor cursor) {
-        Log.d(TAG, "Accounts loader finished. Swapping in cursor");
-        mAccountRecyclerAdapter.swapCursor(cursor);
-        mAccountRecyclerAdapter.notifyDataSetChanged();
+    override fun onLoadFinished(loaderCursor: Loader<Cursor>, cursor: Cursor) {
+        Log.d(TAG, "Accounts loader finished. Swapping in cursor")
+        mAccountRecyclerAdapter.swapCursor(cursor)
+        mAccountRecyclerAdapter.notifyDataSetChanged()
     }
 
-    @Override
-    public void onLoaderReset(Loader<Cursor> arg0) {
-        Log.d(TAG, "Resetting the accounts loader");
-        mAccountRecyclerAdapter.swapCursor(null);
+    override fun onLoaderReset(loaderCursor: Loader<Cursor>) {
+        Log.d(TAG, "Resetting the accounts loader")
+        mAccountRecyclerAdapter.swapCursor(null)
     }
 
-    @Override
-    public boolean onQueryTextSubmit(String query) {
+    override fun onQueryTextSubmit(query: String?): Boolean {
         //nothing to see here, move along
-        return true;
+        return true
     }
 
-    @Override
-    public boolean onQueryTextChange(String newText) {
-        String newFilter = !TextUtils.isEmpty(newText) ? newText : null;
+    override fun onQueryTextChange(newText: String?): Boolean {
+        val newFilter = if (!TextUtils.isEmpty(newText)) newText else null
 
         if (mCurrentFilter == null && newFilter == null) {
-            return true;
+            return true
         }
-        if (mCurrentFilter != null && mCurrentFilter.equals(newFilter)) {
-            return true;
+        if (mCurrentFilter != null && mCurrentFilter == newFilter) {
+            return true
         }
-        mCurrentFilter = newFilter;
-        getLoaderManager().restartLoader(0, null, this);
-        return true;
+        mCurrentFilter = newFilter
+        getLoaderManager().restartLoader<Cursor?>(0, null, this)
+        return true
     }
 
-    @Override
-    public boolean onClose() {
-        if (!TextUtils.isEmpty(mSearchView.getQuery())) {
-            mSearchView.setQuery(null, true);
+    override fun onClose(): Boolean {
+        if (!TextUtils.isEmpty(mSearchView!!.getQuery())) {
+            mSearchView!!.setQuery(null, true)
         }
-        return true;
+        return true
     }
 
     /**
-     * Extends {@link DatabaseCursorLoader} for loading of {@link Account} from the
+     * Extends [DatabaseCursorLoader] for loading of [Account] from the
      * database asynchronously.
-     * <p>By default it loads only top-level accounts (accounts which have no parent or have GnuCash ROOT account as parent.
-     * By submitting a parent account ID in the constructor parameter, it will load child accounts of that parent.</p>
-     * <p>Class must be static because the Android loader framework requires it to be so</p>
-     * @author Ngewi Fet <ngewif@gmail.com>
+     *
+     * By default it loads only top-level accounts (accounts which have no parent or have GnuCash ROOT account as parent.
+     * By submitting a parent account ID in the constructor parameter, it will load child accounts of that parent.
+     *
+     * Class must be static because the Android loader framework requires it to be so
+     * @author Ngewi Fet <ngewif></ngewif>@gmail.com>
      */
-    private static final class AccountsCursorLoader extends DatabaseCursorLoader {
-        private String mParentAccountUID = null;
-        private String mFilter;
-        private DisplayMode mDisplayMode = DisplayMode.TOP_LEVEL;
+    private class AccountsCursorLoader : DatabaseCursorLoader {
+        private var mParentAccountUID: String? = null
+        private var mFilter: String? = null
+        private var mDisplayMode = DisplayMode.TOP_LEVEL
 
         /**
          * Initializes the loader to load accounts from the database.
-         * If the <code>parentAccountId <= 0</code> then only top-level accounts are loaded.
-         * Else only the child accounts of the <code>parentAccountId</code> will be loaded
+         * If the `parentAccountId <= 0` then only top-level accounts are loaded.
+         * Else only the child accounts of the `parentAccountId` will be loaded
          * @param context Application context
          * @param parentAccountUID GUID of the parent account
          */
-        public AccountsCursorLoader(Context context, String parentAccountUID, DisplayMode displayMode) {
-            super(context);
-            this.mParentAccountUID = parentAccountUID;
-            this.mDisplayMode = displayMode;
+        constructor(context: Context?, parentAccountUID: String?, displayMode: DisplayMode) : super(
+            context
+        ) {
+            this.mParentAccountUID = parentAccountUID
+            this.mDisplayMode = displayMode
         }
 
         /**
@@ -433,200 +393,224 @@ public class AccountsListFragment extends Fragment implements
          * @param context Application context
          * @param filter Account name filter string
          */
-        public AccountsCursorLoader(Context context, String filter){
-            super(context);
-            mFilter = filter;
+        constructor(context: Context?, filter: String?) : super(context) {
+            mFilter = filter
         }
 
-        @Override
-        public Cursor loadInBackground() {
-            mDatabaseAdapter = AccountsDbAdapter.getInstance();
-            Cursor cursor;
+        override fun loadInBackground(): Cursor? {
+            mDatabaseAdapter = AccountsDbAdapter.getInstance()
+            val cursor: Cursor?
 
-            if (mFilter != null){
-                cursor = ((AccountsDbAdapter)mDatabaseAdapter)
-                        .fetchAccounts(DatabaseSchema.AccountEntry.COLUMN_HIDDEN + "= 0 AND "
-                                + DatabaseSchema.AccountEntry.COLUMN_NAME + " LIKE '%" + mFilter + "%'",
-                                null, null);
+            if (mFilter != null) {
+                cursor = (mDatabaseAdapter as AccountsDbAdapter)
+                    .fetchAccounts(
+                        (DatabaseSchema.AccountEntry.COLUMN_HIDDEN + "= 0 AND "
+                                + DatabaseSchema.AccountEntry.COLUMN_NAME + " LIKE '%" + mFilter + "%'"),
+                        null, null
+                    )
             } else {
-                if (mParentAccountUID != null && mParentAccountUID.length() > 0)
-                    cursor = ((AccountsDbAdapter) mDatabaseAdapter).fetchSubAccounts(mParentAccountUID);
+                if (mParentAccountUID != null && mParentAccountUID!!.length > 0) cursor =
+                    (mDatabaseAdapter as AccountsDbAdapter).fetchSubAccounts(mParentAccountUID)
                 else {
-                    switch (this.mDisplayMode){
-                        case RECENT:
-                            cursor = ((AccountsDbAdapter) mDatabaseAdapter).fetchRecentAccounts(10);
-                            break;
-                        case FAVORITES:
-                            cursor = ((AccountsDbAdapter) mDatabaseAdapter).fetchFavoriteAccounts();
-                            break;
-                        case TOP_LEVEL:
-                        default:
-                            cursor = ((AccountsDbAdapter) mDatabaseAdapter).fetchTopLevelAccounts();
-                            break;
+                    when (this.mDisplayMode) {
+                        DisplayMode.RECENT -> cursor =
+                            (mDatabaseAdapter as AccountsDbAdapter).fetchRecentAccounts(10)
+
+                        DisplayMode.FAVORITES -> cursor =
+                            (mDatabaseAdapter as AccountsDbAdapter).fetchFavoriteAccounts()
+
+                        DisplayMode.TOP_LEVEL -> cursor =
+                            (mDatabaseAdapter as AccountsDbAdapter).fetchTopLevelAccounts()
+
+                        else -> cursor =
+                            (mDatabaseAdapter as AccountsDbAdapter).fetchTopLevelAccounts()
                     }
                 }
-
             }
 
-            if (cursor != null)
-                registerContentObserver(cursor);
-            return cursor;
+            if (cursor != null) registerContentObserver(cursor)
+            return cursor
         }
     }
 
 
-    class AccountRecyclerAdapter extends CursorRecyclerAdapter<AccountRecyclerAdapter.AccountViewHolder> {
+    private inner class AccountRecyclerAdapter(cursor: Cursor?) :
+        CursorRecyclerAdapter<AccountViewHolder>(cursor) {
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AccountViewHolder {
+            val v = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.cardview_account, parent, false)
 
-        public AccountRecyclerAdapter(Cursor cursor){
-           super(cursor);
+            return AccountViewHolder(v)
         }
 
-        @Override
-        public AccountViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View v = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.cardview_account, parent, false);
+        override fun onBindViewHolderCursor(holder: AccountViewHolder, cursor: Cursor) {
+            val accountUID =
+                cursor.getString(cursor.getColumnIndexOrThrow(DatabaseSchema.AccountEntry.COLUMN_UID))
+            mAccountsDbAdapter = AccountsDbAdapter.getInstance()
+            holder.accoundId = mAccountsDbAdapter!!.getID(accountUID)
 
-            return new AccountViewHolder(v);
-        }
-
-        @Override
-        public void onBindViewHolderCursor(final AccountViewHolder holder, final Cursor cursor) {
-            final String accountUID = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseSchema.AccountEntry.COLUMN_UID));
-            mAccountsDbAdapter = AccountsDbAdapter.getInstance();
-            holder.accoundId = mAccountsDbAdapter.getID(accountUID);
-
-            holder.accountName.setText(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseSchema.AccountEntry.COLUMN_NAME)));
-            int subAccountCount = mAccountsDbAdapter.getSubAccountCount(accountUID);
+            holder.accountName.setText(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseSchema.AccountEntry.COLUMN_NAME)))
+            val subAccountCount = mAccountsDbAdapter!!.getSubAccountCount(accountUID)
             if (subAccountCount > 0) {
-                holder.description.setVisibility(View.VISIBLE);
-                String text = getResources().getQuantityString(R.plurals.label_sub_accounts, subAccountCount, subAccountCount);
-                holder.description.setText(text);
-            } else
-                holder.description.setVisibility(View.GONE);
+                holder.description.setVisibility(View.VISIBLE)
+                val text: String? = getResources().getQuantityString(
+                    R.plurals.label_sub_accounts,
+                    subAccountCount,
+                    subAccountCount
+                )
+                holder.description.setText(text)
+            } else holder.description.setVisibility(View.GONE)
 
             // add a summary of transactions to the account view
 
-                // Make sure the balance task is truly multithread
-            new AccountBalanceTask(holder.accountBalance).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, accountUID);
+            // Make sure the balance task is truly multithread
+            AccountBalanceTask(holder.accountBalance).executeOnExecutor(
+                AsyncTask.THREAD_POOL_EXECUTOR,
+                accountUID
+            )
 
-            String accountColor = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseSchema.AccountEntry.COLUMN_COLOR_CODE));
-            int colorCode = accountColor == null ? Color.TRANSPARENT : Color.parseColor(accountColor);
-            holder.colorStripView.setBackgroundColor(colorCode);
+            val accountColor =
+                cursor.getString(cursor.getColumnIndexOrThrow(DatabaseSchema.AccountEntry.COLUMN_COLOR_CODE))
+            val colorCode =
+                if (accountColor == null) Color.TRANSPARENT else Color.parseColor(accountColor)
+            holder.colorStripView.setBackgroundColor(colorCode)
 
-            boolean isPlaceholderAccount = mAccountsDbAdapter.isPlaceholderAccount(accountUID);
+            val isPlaceholderAccount = mAccountsDbAdapter!!.isPlaceholderAccount(accountUID)
             if (isPlaceholderAccount) {
-                holder.createTransaction.setVisibility(View.GONE);
+                holder.createTransaction.setVisibility(View.GONE)
             } else {
-                holder.createTransaction.setOnClickListener(new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(View v) {
-                        Intent intent = new Intent(getActivity(), FormActivity.class);
-                        intent.setAction(Intent.ACTION_INSERT_OR_EDIT);
-                        intent.putExtra(UxArgument.SELECTED_ACCOUNT_UID, accountUID);
-                        intent.putExtra(UxArgument.FORM_TYPE, FormActivity.FormType.TRANSACTION.name());
-                        getActivity().startActivity(intent);
+                holder.createTransaction.setOnClickListener(object : View.OnClickListener {
+                    override fun onClick(v: View?) {
+                        val intent = Intent(getActivity(), FormActivity::class.java)
+                        intent.setAction(Intent.ACTION_INSERT_OR_EDIT)
+                        intent.putExtra(UxArgument.SELECTED_ACCOUNT_UID, accountUID)
+                        intent.putExtra(
+                            UxArgument.FORM_TYPE,
+                            FormActivity.FormType.TRANSACTION.name
+                        )
+                        requireActivity().startActivity(intent)
                     }
-                });
+                })
             }
 
-            List<Budget> budgets = BudgetsDbAdapter.getInstance().getAccountBudgets(accountUID);
+            val budgets = BudgetsDbAdapter.getInstance().getAccountBudgets(accountUID)
             //TODO: include fetch only active budgets
-            if (budgets.size() == 1){
-                Budget budget = budgets.get(0);
-                Money balance = mAccountsDbAdapter.getAccountBalance(accountUID, budget.getStartofCurrentPeriod(), budget.getEndOfCurrentPeriod());
-                double budgetProgress = balance.divide(budget.getAmount(accountUID)).asBigDecimal().doubleValue() * 100;
+            if (budgets.size == 1) {
+                val budget = budgets.get(0)
+                val balance = mAccountsDbAdapter!!.getAccountBalance(
+                    accountUID,
+                    budget.getStartofCurrentPeriod(),
+                    budget.getEndOfCurrentPeriod()
+                )
+                val budgetProgress =
+                    balance.divide(budget.getAmount(accountUID)).asBigDecimal().toDouble() * 100
 
-                holder.budgetIndicator.setVisibility(View.VISIBLE);
-                holder.budgetIndicator.setProgress((int) budgetProgress);
+                holder.budgetIndicator.setVisibility(View.VISIBLE)
+                holder.budgetIndicator.setProgress(budgetProgress.toInt())
             } else {
-                holder.budgetIndicator.setVisibility(View.GONE);
+                holder.budgetIndicator.setVisibility(View.GONE)
             }
 
 
-            if (mAccountsDbAdapter.isFavoriteAccount(accountUID)){
-                holder.favoriteStatus.setImageResource(R.drawable.ic_star_black_24dp);
+            if (mAccountsDbAdapter!!.isFavoriteAccount(accountUID)) {
+                holder.favoriteStatus.setImageResource(R.drawable.ic_star_black_24dp)
             } else {
-                holder.favoriteStatus.setImageResource(R.drawable.ic_star_border_black_24dp);
+                holder.favoriteStatus.setImageResource(R.drawable.ic_star_border_black_24dp)
             }
 
-            holder.favoriteStatus.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    boolean isFavoriteAccount = mAccountsDbAdapter.isFavoriteAccount(accountUID);
+            holder.favoriteStatus.setOnClickListener(object : View.OnClickListener {
+                override fun onClick(v: View?) {
+                    val isFavoriteAccount = mAccountsDbAdapter!!.isFavoriteAccount(accountUID)
 
-                    ContentValues contentValues = new ContentValues();
-                    contentValues.put(DatabaseSchema.AccountEntry.COLUMN_FAVORITE, !isFavoriteAccount);
-                    mAccountsDbAdapter.updateRecord(accountUID, contentValues);
+                    val contentValues = ContentValues()
+                    contentValues.put(
+                        DatabaseSchema.AccountEntry.COLUMN_FAVORITE,
+                        !isFavoriteAccount
+                    )
+                    mAccountsDbAdapter!!.updateRecord(accountUID, contentValues)
 
-                    int drawableResource = !isFavoriteAccount ?
-                            R.drawable.ic_star_black_24dp : R.drawable.ic_star_border_black_24dp;
-                    holder.favoriteStatus.setImageResource(drawableResource);
-                    if (mDisplayMode == DisplayMode.FAVORITES)
-                        refresh();
+                    val drawableResource =
+                        if (!isFavoriteAccount) R.drawable.ic_star_black_24dp else R.drawable.ic_star_border_black_24dp
+                    holder.favoriteStatus.setImageResource(drawableResource)
+                    if (mDisplayMode == DisplayMode.FAVORITES) refresh()
                 }
-            });
+            })
 
-            holder.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    onListItemClick(accountUID);
+            holder.itemView.setOnClickListener(object : View.OnClickListener {
+                override fun onClick(v: View?) {
+                    onListItemClick(accountUID)
                 }
-            });
+            })
         }
 
 
-        class AccountViewHolder extends RecyclerView.ViewHolder implements PopupMenu.OnMenuItemClickListener{
-            private TextView accountName;
-            private TextView description;
-            private TextView accountBalance;
-            private ImageView createTransaction;
-            private ImageView favoriteStatus;
-            private ImageView optionsMenu;
-            private View colorStripView;
-            private ProgressBar budgetIndicator;
-            long accoundId;
+        internal inner class AccountViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
+            PopupMenu.OnMenuItemClickListener {
+            val accountName: TextView
+            val description: TextView
+            val accountBalance: TextView?
+            val createTransaction: ImageView
+            val favoriteStatus: ImageView
+            val optionsMenu: ImageView
+            val colorStripView: View
+            val budgetIndicator: ProgressBar
+            var accoundId: Long = 0
 
-            public AccountViewHolder(View itemView) {
-                super(itemView);
-                accountName = itemView.findViewById(R.id.primary_text);
-                description = itemView.findViewById(R.id.secondary_text);
-                accountBalance = itemView.findViewById(R.id.account_balance);
-                createTransaction = itemView.findViewById(R.id.create_transaction);
-                favoriteStatus = itemView.findViewById(R.id.favorite_status);
-                optionsMenu = itemView.findViewById(R.id.options_menu);
-                colorStripView = itemView.findViewById(R.id.account_color_strip);
-                budgetIndicator = itemView.findViewById(R.id.budget_indicator);
+            init {
+                accountName = itemView.findViewById<TextView?>(R.id.primary_text)
+                description = itemView.findViewById<TextView?>(R.id.secondary_text)
+                accountBalance = itemView.findViewById<TextView?>(R.id.account_balance)
+                createTransaction = itemView.findViewById<ImageView?>(R.id.create_transaction)
+                favoriteStatus = itemView.findViewById<ImageView?>(R.id.favorite_status)
+                optionsMenu = itemView.findViewById<ImageView?>(R.id.options_menu)
+                colorStripView = itemView.findViewById<View?>(R.id.account_color_strip)
+                budgetIndicator = itemView.findViewById<ProgressBar?>(R.id.budget_indicator)
 
-                optionsMenu.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        PopupMenu popup = new PopupMenu(getActivity(), v);
-                        popup.setOnMenuItemClickListener(AccountViewHolder.this);
-                        MenuInflater inflater = popup.getMenuInflater();
-                        inflater.inflate(R.menu.account_context_menu, popup.getMenu());
-                        popup.show();
+                optionsMenu.setOnClickListener(object : View.OnClickListener {
+                    override fun onClick(v: View) {
+                        val popup = PopupMenu(requireActivity(), v)
+                        popup.setOnMenuItemClickListener(this@AccountViewHolder)
+                        val inflater = popup.getMenuInflater()
+                        inflater.inflate(R.menu.account_context_menu, popup.getMenu())
+                        popup.show()
                     }
-                });
-
+                })
             }
 
 
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                switch (item.getItemId()){
-                    case R.id.context_menu_edit_accounts:
-                        openCreateOrEditActivity(accoundId);
-                        return true;
+            override fun onMenuItemClick(item: MenuItem): Boolean {
+                when (item.getItemId()) {
+                    R.id.context_menu_edit_accounts -> {
+                        openCreateOrEditActivity(accoundId)
+                        return true
+                    }
 
-                    case R.id.context_menu_delete:
-                        tryDeleteAccount(accoundId);
-                        return true;
+                    R.id.context_menu_delete -> {
+                        tryDeleteAccount(accoundId)
+                        return true
+                    }
 
-                    default:
-                        return false;
+                    else -> return false
                 }
             }
+        }
+    }
+
+    companion object {
+        /**
+         * Logging tag
+         */
+        protected const val TAG: String = "AccountsListFragment"
+
+        /**
+         * Tag to save [mDisplayMode] to fragment state
+         */
+        private const val STATE_DISPLAY_MODE = "mDisplayMode"
+
+        fun newInstance(displayMode: DisplayMode?): AccountsListFragment {
+            val fragment = AccountsListFragment()
+            fragment.mDisplayMode = displayMode
+            return fragment
         }
     }
 }
