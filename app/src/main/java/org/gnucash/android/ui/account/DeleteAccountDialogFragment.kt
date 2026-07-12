@@ -81,7 +81,7 @@ class DeleteAccountDialogFragment : DialogFragment() {
     private var mSubAccountCount = 0
 
     @Inject
-    var mRepository: Repository? = null
+    lateinit var mRepository: Repository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

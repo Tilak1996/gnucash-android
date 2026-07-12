@@ -13,190 +13,186 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gnucash.android.ui.colorpicker
 
-package org.gnucash.android.ui.colorpicker;
-
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.os.Bundle;
-import androidx.fragment.app.DialogFragment;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.ProgressBar;
-
-import org.gnucash.android.R;
-import org.gnucash.android.ui.colorpicker.ColorPickerSwatch.OnColorSelectedListener;
+import android.app.Activity
+import android.app.AlertDialog
+import android.app.Dialog
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.widget.ProgressBar
+import androidx.fragment.app.DialogFragment
+import org.gnucash.android.R
+import org.gnucash.android.ui.colorpicker.ColorPickerSwatch.OnColorSelectedListener
 
 /**
  * A dialog which takes in as input an array of colors and creates a palette allowing the user to
  * select a specific color swatch, which invokes a listener.
  */
-public class ColorPickerDialog extends DialogFragment implements OnColorSelectedListener {
+class ColorPickerDialog : DialogFragment(), OnColorSelectedListener {
+    protected var mAlertDialog: AlertDialog? = null
 
-    public static final int SIZE_LARGE = 1;
-    public static final int SIZE_SMALL = 2;
+    protected var mTitleResId: Int = R.string.color_picker_default_title
+    protected var mColors: IntArray? = null
+    protected var mSelectedColor: Int = 0
+    protected var mColumns: Int = 0
+    protected var mSize: Int = 0
 
-    protected AlertDialog mAlertDialog;
+    private var mPalette: ColorPickerPalette? = null
+    private var mProgress: ProgressBar? = null
 
-    protected static final String KEY_TITLE_ID = "title_id";
-    protected static final String KEY_COLORS = "colors";
-    protected static final String KEY_SELECTED_COLOR = "selected_color";
-    protected static final String KEY_COLUMNS = "columns";
-    protected static final String KEY_SIZE = "size";
+    protected var mListener: OnColorSelectedListener? = null
 
-    protected int mTitleResId = R.string.color_picker_default_title;
-    protected int[] mColors = null;
-    protected int mSelectedColor;
-    protected int mColumns;
-    protected int mSize;
-
-    private ColorPickerPalette mPalette;
-    private ProgressBar mProgress;
-
-    protected OnColorSelectedListener mListener;
-
-    public ColorPickerDialog() {
-        // Empty constructor required for dialog fragments.
+    fun initialize(
+        titleResId: Int,
+        colors: IntArray?,
+        selectedColor: Int,
+        columns: Int,
+        size: Int
+    ) {
+        setArguments(titleResId, columns, size)
+        setColors(colors, selectedColor)
     }
 
-    public static ColorPickerDialog newInstance(int titleResId, int[] colors, int selectedColor,
-                                                int columns, int size) {
-        ColorPickerDialog ret = new ColorPickerDialog();
-        ret.initialize(titleResId, colors, selectedColor, columns, size);
-        return ret;
+    fun setArguments(titleResId: Int, columns: Int, size: Int) {
+        val bundle = Bundle()
+        bundle.putInt(KEY_TITLE_ID, titleResId)
+        bundle.putInt(KEY_COLUMNS, columns)
+        bundle.putInt(KEY_SIZE, size)
+        setArguments(bundle)
     }
 
-    public void initialize(int titleResId, int[] colors, int selectedColor, int columns, int size) {
-        setArguments(titleResId, columns, size);
-        setColors(colors, selectedColor);
+    fun setOnColorSelectedListener(listener: OnColorSelectedListener?) {
+        mListener = listener
     }
 
-    public void setArguments(int titleResId, int columns, int size) {
-        Bundle bundle = new Bundle();
-        bundle.putInt(KEY_TITLE_ID, titleResId);
-        bundle.putInt(KEY_COLUMNS, columns);
-        bundle.putInt(KEY_SIZE, size);
-        setArguments(bundle);
-    }
-
-    public void setOnColorSelectedListener(OnColorSelectedListener listener) {
-        mListener = listener;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
         if (getArguments() != null) {
-            mTitleResId = getArguments().getInt(KEY_TITLE_ID);
-            mColumns = getArguments().getInt(KEY_COLUMNS);
-            mSize = getArguments().getInt(KEY_SIZE);
+            mTitleResId = requireArguments().getInt(KEY_TITLE_ID)
+            mColumns = requireArguments().getInt(KEY_COLUMNS)
+            mSize = requireArguments().getInt(KEY_SIZE)
         }
 
         if (savedInstanceState != null) {
-            mColors = savedInstanceState.getIntArray(KEY_COLORS);
-            mSelectedColor = (Integer) savedInstanceState.getSerializable(KEY_SELECTED_COLOR);
+            mColors = savedInstanceState.getIntArray(KEY_COLORS)
+            mSelectedColor =
+                (savedInstanceState.getSerializable(org.gnucash.android.ui.colorpicker.ColorPickerDialog.Companion.KEY_SELECTED_COLOR) as Int?)!!
         }
     }
 
-    @Override
-    public Dialog onCreateDialog(Bundle savedInstanceState) {
-        final Activity activity = getActivity();
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val activity: Activity? = getActivity()
 
-        View view = LayoutInflater.from(getActivity()).inflate(R.layout.color_picker_dialog, null);
-        mProgress = (ProgressBar) view.findViewById(android.R.id.progress);
-        mPalette = (ColorPickerPalette) view.findViewById(R.id.color_picker);
-        mPalette.init(mSize, mColumns, this);
+        val view = LayoutInflater.from(getActivity()).inflate(R.layout.color_picker_dialog, null)
+        mProgress = view.findViewById<View?>(android.R.id.progress) as ProgressBar?
+        mPalette = view.findViewById<View?>(R.id.color_picker) as ColorPickerPalette?
+        mPalette!!.init(mSize, mColumns, this)
 
         if (mColors != null) {
-            showPaletteView();
+            showPaletteView()
         }
 
-        mAlertDialog = new AlertDialog.Builder(activity)
-                .setTitle(mTitleResId)
-                .setView(view)
-                .create();
+        mAlertDialog = AlertDialog.Builder(activity)
+            .setTitle(mTitleResId)
+            .setView(view)
+            .create()
 
-        return mAlertDialog;
+        return mAlertDialog!!
     }
 
-    @Override
-    public void onColorSelected(int color) {
+    override fun onColorSelected(color: Int) {
         if (mListener != null) {
-            mListener.onColorSelected(color);
+            mListener!!.onColorSelected(color)
         }
 
-        if (getTargetFragment() instanceof OnColorSelectedListener) {
-            final OnColorSelectedListener listener =
-                    (OnColorSelectedListener) getTargetFragment();
-            listener.onColorSelected(color);
+        if (getTargetFragment() is OnColorSelectedListener) {
+            val listener =
+                getTargetFragment() as OnColorSelectedListener?
+            listener!!.onColorSelected(color)
         }
 
         if (color != mSelectedColor) {
-            mSelectedColor = color;
+            mSelectedColor = color
             // Redraw palette to show checkmark on newly selected color before dismissing.
-            mPalette.drawPalette(mColors, mSelectedColor);
+            mPalette!!.drawPalette(mColors, mSelectedColor)
         }
 
-        dismiss();
+        dismiss()
     }
 
-    public void showPaletteView() {
+    fun showPaletteView() {
         if (mProgress != null && mPalette != null) {
-            mProgress.setVisibility(View.GONE);
-            refreshPalette();
-            mPalette.setVisibility(View.VISIBLE);
+            mProgress!!.setVisibility(View.GONE)
+            refreshPalette()
+            mPalette!!.setVisibility(View.VISIBLE)
         }
     }
 
-    public void showProgressBarView() {
+    fun showProgressBarView() {
         if (mProgress != null && mPalette != null) {
-            mProgress.setVisibility(View.VISIBLE);
-            mPalette.setVisibility(View.GONE);
+            mProgress!!.setVisibility(View.VISIBLE)
+            mPalette!!.setVisibility(View.GONE)
         }
     }
 
-    public void setColors(int[] colors, int selectedColor) {
+    fun setColors(colors: IntArray?, selectedColor: Int) {
         if (mColors != colors || mSelectedColor != selectedColor) {
-            mColors = colors;
-            mSelectedColor = selectedColor;
-            refreshPalette();
+            mColors = colors
+            mSelectedColor = selectedColor
+            refreshPalette()
         }
     }
 
-    public void setColors(int[] colors) {
-        if (mColors != colors) {
-            mColors = colors;
-            refreshPalette();
-        }
-    }
-
-    public void setSelectedColor(int color) {
-        if (mSelectedColor != color) {
-            mSelectedColor = color;
-            refreshPalette();
-        }
-    }
-
-    private void refreshPalette() {
+    private fun refreshPalette() {
         if (mPalette != null && mColors != null) {
-            mPalette.drawPalette(mColors, mSelectedColor);
+            mPalette!!.drawPalette(mColors, mSelectedColor)
         }
     }
 
-    public int[] getColors() {
-        return mColors;
+    var colors: IntArray?
+        get() = mColors
+        set(colors) {
+            if (mColors != colors) {
+                mColors = colors
+                refreshPalette()
+            }
+        }
+
+    var selectedColor: Int
+        get() = mSelectedColor
+        set(color) {
+            if (mSelectedColor != color) {
+                mSelectedColor = color
+                refreshPalette()
+            }
+        }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putIntArray(KEY_COLORS, mColors)
+        outState.putSerializable(KEY_SELECTED_COLOR, mSelectedColor)
     }
 
-    public int getSelectedColor() {
-        return mSelectedColor;
-    }
+    companion object {
+        const val SIZE_LARGE: Int = 1
+        const val SIZE_SMALL: Int = 2
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putIntArray(KEY_COLORS, mColors);
-        outState.putSerializable(KEY_SELECTED_COLOR, mSelectedColor);
+        protected const val KEY_TITLE_ID: String = "title_id"
+        protected const val KEY_COLORS: String = "colors"
+        protected const val KEY_SELECTED_COLOR: String = "selected_color"
+        protected const val KEY_COLUMNS: String = "columns"
+        protected const val KEY_SIZE: String = "size"
+
+        fun newInstance(
+            titleResId: Int, colors: IntArray?, selectedColor: Int,
+            columns: Int, size: Int
+        ): ColorPickerDialog {
+            val ret = ColorPickerDialog()
+            ret.initialize(titleResId, colors, selectedColor, columns, size)
+            return ret
+        }
     }
 }

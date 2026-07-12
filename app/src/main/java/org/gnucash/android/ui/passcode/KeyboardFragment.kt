@@ -14,177 +14,130 @@
  * limitations under the License.
  */
 
-package org.gnucash.android.ui.passcode;
+package org.gnucash.android.ui.passcode
 
-import android.app.Activity;
-import android.os.Bundle;
-import android.os.Handler;
-import androidx.fragment.app.Fragment;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
-
-import org.gnucash.android.R;
+import android.content.Context
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.TextView
+import androidx.fragment.app.Fragment
+import org.gnucash.android.R
 
 /**
  * Soft numeric keyboard for lock screen and passcode preference.
  * @author Oleksandr Tyshkovets <olexandr.tyshkovets@gmail.com>
  */
-public class KeyboardFragment extends Fragment {
+class KeyboardFragment : Fragment() {
 
-    private static final int DELAY = 500;
+    private lateinit var pass1: TextView
+    private lateinit var pass2: TextView
+    private lateinit var pass3: TextView
+    private lateinit var pass4: TextView
 
-    private TextView pass1;
-    private TextView pass2;
-    private TextView pass3;
-    private TextView pass4;
+    private var length = 0
+    private var listener: OnPasscodeEnteredListener? = null
+    private val handler = Handler(Looper.getMainLooper())
 
-    private int length = 0;
-
-    public interface OnPasscodeEnteredListener {
-        void onPasscodeEntered(String pass);
+    interface OnPasscodeEnteredListener {
+        fun onPasscodeEntered(pass: String)
     }
 
-    private OnPasscodeEnteredListener listener;
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        val rootView = inflater.inflate(R.layout.fragment_numeric_keyboard, container, false)
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        pass1 = rootView.findViewById(R.id.passcode1)
+        pass2 = rootView.findViewById(R.id.passcode2)
+        pass3 = rootView.findViewById(R.id.passcode3)
+        pass4 = rootView.findViewById(R.id.passcode4)
 
-        View rootView = inflater.inflate(R.layout.fragment_numeric_keyboard, container, false);
+        rootView.findViewById<View>(R.id.one_btn).setOnClickListener { add("1") }
+        rootView.findViewById<View>(R.id.two_btn).setOnClickListener { add("2") }
+        rootView.findViewById<View>(R.id.three_btn).setOnClickListener { add("3") }
+        rootView.findViewById<View>(R.id.four_btn).setOnClickListener { add("4") }
+        rootView.findViewById<View>(R.id.five_btn).setOnClickListener { add("5") }
+        rootView.findViewById<View>(R.id.six_btn).setOnClickListener { add("6") }
+        rootView.findViewById<View>(R.id.seven_btn).setOnClickListener { add("7") }
+        rootView.findViewById<View>(R.id.eight_btn).setOnClickListener { add("8") }
+        rootView.findViewById<View>(R.id.nine_btn).setOnClickListener { add("9") }
+        rootView.findViewById<View>(R.id.zero_btn).setOnClickListener { add("0") }
+        rootView.findViewById<View>(R.id.delete_btn).setOnClickListener { delete() }
 
-        pass1 = (TextView) rootView.findViewById(R.id.passcode1);
-        pass2 = (TextView) rootView.findViewById(R.id.passcode2);
-        pass3 = (TextView) rootView.findViewById(R.id.passcode3);
-        pass4 = (TextView) rootView.findViewById(R.id.passcode4);
-
-        rootView.findViewById(R.id.one_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                add("1");
-            }
-        });
-        rootView.findViewById(R.id.two_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                add("2");
-            }
-        });
-        rootView.findViewById(R.id.three_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                add("3");
-            }
-        });
-        rootView.findViewById(R.id.four_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                add("4");
-            }
-        });
-        rootView.findViewById(R.id.five_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                add("5");
-            }
-        });
-        rootView.findViewById(R.id.six_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                add("6");
-            }
-        });
-        rootView.findViewById(R.id.seven_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                add("7");
-            }
-        });
-        rootView.findViewById(R.id.eight_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                add("8");
-            }
-        });
-        rootView.findViewById(R.id.nine_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                add("9");
-            }
-        });
-        rootView.findViewById(R.id.zero_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                add("0");
-            }
-        });
-        rootView.findViewById(R.id.delete_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                switch (length) {
-                    case 1:
-                        pass1.setText(null);
-                        length--;
-                        break;
-                    case 2:
-                        pass2.setText(null);
-                        length--;
-                        break;
-                    case 3:
-                        pass3.setText(null);
-                        length--;
-                        break;
-                    case 4:
-                        pass4.setText(null);
-                        length--;
-                }
-            }
-        });
-
-        return rootView;
+        return rootView
     }
 
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
-            listener = (OnPasscodeEnteredListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString() + " must implement "
-                    + KeyboardFragment.OnPasscodeEnteredListener.class);
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        listener = context as? OnPasscodeEnteredListener
+            ?: throw ClassCastException("$context must implement ${OnPasscodeEnteredListener::class.java}")
+    }
+
+    override fun onDetach() {
+        listener = null
+        super.onDetach()
+    }
+
+    private fun delete() {
+        when (length) {
+            1 -> {
+                pass1.text = null
+                length--
+            }
+            2 -> {
+                pass2.text = null
+                length--
+            }
+            3 -> {
+                pass3.text = null
+                length--
+            }
+            4 -> {
+                pass4.text = null
+                length--
+            }
         }
     }
 
-    private void add(String num) {
-        switch (length + 1) {
-            case 1:
-                pass1.setText(num);
-                length++;
-                break;
-            case 2:
-                pass2.setText(num);
-                length++;
-                break;
-            case 3:
-                pass3.setText(num);
-                length++;
-                break;
-            case 4:
-                pass4.setText(num);
-                length++;
+    private fun add(num: String) {
+        when (length + 1) {
+            1 -> {
+                pass1.text = num
+                length++
+            }
+            2 -> {
+                pass2.text = num
+                length++
+            }
+            3 -> {
+                pass3.text = num
+                length++
+            }
+            4 -> {
+                pass4.text = num
+                length++
 
-                new Handler().postDelayed(new Runnable() {
-                    public void run() {
-                        listener.onPasscodeEntered(pass1.getText().toString() + pass2.getText()
-                                + pass3.getText() + pass4.getText());
-                        pass1.setText(null);
-                        pass2.setText(null);
-                        pass3.setText(null);
-                        pass4.setText(null);
-                        length = 0;
-                    }
-                }, DELAY);
+                handler.postDelayed({
+                    listener?.onPasscodeEntered(
+                        pass1.text.toString() + pass2.text + pass3.text + pass4.text
+                    )
+                    pass1.text = null
+                    pass2.text = null
+                    pass3.text = null
+                    pass4.text = null
+                    length = 0
+                }, DELAY.toLong())
+            }
         }
     }
 
+    companion object {
+        private const val DELAY = 500
+    }
 }

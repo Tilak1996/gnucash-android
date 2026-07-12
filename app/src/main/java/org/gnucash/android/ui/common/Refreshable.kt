@@ -13,22 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gnucash.android.ui.common;
+package org.gnucash.android.ui.common
 
 /**
  * Interface for fragments which are refreshable
+ *
  * @author Ngewi Fet <ngewif@gmail.com>
  */
-public interface Refreshable {
-
+interface Refreshable {
     /**
      * Refresh the list, typically be restarting the loader
      */
-    public void refresh();
+    fun refresh()
 
     /**
      * Refresh the list with modified parameters
+     *
      * @param uid GUID of relevant item to be refreshed
      */
-    public void refresh(String uid);
+    fun refresh(uid: String?)
 }

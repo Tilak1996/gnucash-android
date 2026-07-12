@@ -13,112 +13,108 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gnucash.android.ui.colorpicker
 
-package org.gnucash.android.ui.colorpicker;
 
-
-import android.content.Context;
-import android.content.res.Resources;
-import android.util.AttributeSet;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TableLayout;
-import android.widget.TableRow;
-
-import org.gnucash.android.R;
-import org.gnucash.android.ui.colorpicker.ColorPickerSwatch.OnColorSelectedListener;
+import android.content.Context
+import android.util.AttributeSet
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TableLayout
+import android.widget.TableRow
+import org.gnucash.android.R
+import org.gnucash.android.ui.colorpicker.ColorPickerSwatch.OnColorSelectedListener
 
 /**
  * A color picker custom view which creates an grid of color squares.  The number of squares per
  * row (and the padding between the squares) is determined by the user.
  */
-public class ColorPickerPalette extends TableLayout {
+class ColorPickerPalette : TableLayout {
+    var mOnColorSelectedListener: OnColorSelectedListener? = null
 
-    public OnColorSelectedListener mOnColorSelectedListener;
+    private var mDescription: String? = null
+    private var mDescriptionSelected: String? = null
 
-    private String mDescription;
-    private String mDescriptionSelected;
+    private var mSwatchLength = 0
+    private var mMarginSize = 0
+    private var mNumColumns = 0
 
-    private int mSwatchLength;
-    private int mMarginSize;
-    private int mNumColumns;
+    constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)
 
-    public ColorPickerPalette(Context context, AttributeSet attrs) {
-        super(context, attrs);
-    }
-
-    public ColorPickerPalette(Context context) {
-        super(context);
-    }
+    constructor(context: Context?) : super(context)
 
     /**
      * Initialize the size, columns, and listener.  Size should be a pre-defined size (SIZE_LARGE
      * or SIZE_SMALL) from ColorPickerDialogFragment.
      */
-    public void init(int size, int columns, OnColorSelectedListener listener) {
-        mNumColumns = columns;
-        Resources res = getResources();
+    fun init(size: Int, columns: Int, listener: OnColorSelectedListener?) {
+        mNumColumns = columns
+        val res = getResources()
         if (size == ColorPickerDialog.SIZE_LARGE) {
-            mSwatchLength = res.getDimensionPixelSize(R.dimen.color_swatch_large);
-            mMarginSize = res.getDimensionPixelSize(R.dimen.color_swatch_margins_large);
+            mSwatchLength = res.getDimensionPixelSize(R.dimen.color_swatch_large)
+            mMarginSize = res.getDimensionPixelSize(R.dimen.color_swatch_margins_large)
         } else {
-            mSwatchLength = res.getDimensionPixelSize(R.dimen.color_swatch_small);
-            mMarginSize = res.getDimensionPixelSize(R.dimen.color_swatch_margins_small);
+            mSwatchLength = res.getDimensionPixelSize(R.dimen.color_swatch_small)
+            mMarginSize = res.getDimensionPixelSize(R.dimen.color_swatch_margins_small)
         }
-        mOnColorSelectedListener = listener;
+        mOnColorSelectedListener = listener
 
-        mDescription = res.getString(R.string.color_swatch_description);
-        mDescriptionSelected = res.getString(R.string.color_swatch_description_selected);
+        mDescription = res.getString(R.string.color_swatch_description)
+        mDescriptionSelected = res.getString(R.string.color_swatch_description_selected)
     }
 
-    private TableRow createTableRow() {
-        TableRow row = new TableRow(getContext());
-        ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(LayoutParams.WRAP_CONTENT,
-                LayoutParams.WRAP_CONTENT);
-        row.setLayoutParams(params);
-        return row;
+    private fun createTableRow(): TableRow {
+        val row = TableRow(getContext())
+        val params = ViewGroup.LayoutParams(
+            LayoutParams.WRAP_CONTENT,
+            LayoutParams.WRAP_CONTENT
+        )
+        row.setLayoutParams(params)
+        return row
     }
 
     /**
      * Adds swatches to table in a serpentine format.
      */
-    public void drawPalette(int[] colors, int selectedColor) {
+    fun drawPalette(colors: IntArray?, selectedColor: Int) {
         if (colors == null) {
-            return;
+            return
         }
 
-        this.removeAllViews();
-        int tableElements = 0;
-        int rowElements = 0;
-        int rowNumber = 0;
+        this.removeAllViews()
+        var tableElements = 0
+        var rowElements = 0
+        var rowNumber = 0
 
         // Fills the table with swatches based on the array of colors.
-        TableRow row = createTableRow();
-        for (int color : colors) {
-            tableElements++;
+        var row = createTableRow()
+        for (color in colors) {
+            tableElements++
 
-            View colorSwatch = createColorSwatch(color, selectedColor);
-            setSwatchDescription(rowNumber, tableElements, rowElements, color == selectedColor,
-                    colorSwatch);
-            addSwatchToRow(row, colorSwatch, rowNumber);
+            val colorSwatch: View = createColorSwatch(color, selectedColor)
+            setSwatchDescription(
+                rowNumber, tableElements, rowElements, color == selectedColor,
+                colorSwatch
+            )
+            addSwatchToRow(row, colorSwatch, rowNumber)
 
-            rowElements++;
+            rowElements++
             if (rowElements == mNumColumns) {
-                addView(row);
-                row = createTableRow();
-                rowElements = 0;
-                rowNumber++;
+                addView(row)
+                row = createTableRow()
+                rowElements = 0
+                rowNumber++
             }
         }
 
         // Create blank views to fill the row if the last row has not been filled.
         if (rowElements > 0) {
             while (rowElements != mNumColumns) {
-                addSwatchToRow(row, createBlankSpace(), rowNumber);
-                rowElements++;
+                addSwatchToRow(row, createBlankSpace(), rowNumber)
+                rowElements++
             }
-            addView(row);
+            addView(row)
         }
     }
 
@@ -126,11 +122,11 @@ public class ColorPickerPalette extends TableLayout {
      * Appends a swatch to the end of the row for even-numbered rows (starting with row 0),
      * to the beginning of a row for odd-numbered rows.
      */
-    private void addSwatchToRow(TableRow row, View swatch, int rowNumber) {
+    private fun addSwatchToRow(row: TableRow, swatch: View?, rowNumber: Int) {
         if (rowNumber % 2 == 0) {
-            row.addView(swatch);
+            row.addView(swatch)
         } else {
-            row.addView(swatch, 0);
+            row.addView(swatch, 0)
         }
     }
 
@@ -140,47 +136,51 @@ public class ColorPickerPalette extends TableLayout {
      * in an opposite direction from their left->right/top->bottom order, which is how the system
      * will arrange them for accessibility purposes.
      */
-    private void setSwatchDescription(int rowNumber, int index, int rowElements, boolean selected,
-                                      View swatch) {
-        int accessibilityIndex;
+    private fun setSwatchDescription(
+        rowNumber: Int, index: Int, rowElements: Int, selected: Boolean,
+        swatch: View
+    ) {
+        val accessibilityIndex: Int
         if (rowNumber % 2 == 0) {
             // We're in a regular-ordered row
-            accessibilityIndex = index;
+            accessibilityIndex = index
         } else {
             // We're in a backwards-ordered row.
-            int rowMax = (rowNumber + 1) * mNumColumns;
-            accessibilityIndex = rowMax - rowElements;
+            val rowMax = (rowNumber + 1) * mNumColumns
+            accessibilityIndex = rowMax - rowElements
         }
 
-        String description;
+        val description: String?
         if (selected) {
-            description = String.format(mDescriptionSelected, accessibilityIndex);
+            description = String.format(mDescriptionSelected!!, accessibilityIndex)
         } else {
-            description = String.format(mDescription, accessibilityIndex);
+            description = String.format(mDescription!!, accessibilityIndex)
         }
-        swatch.setContentDescription(description);
+        swatch.setContentDescription(description)
     }
 
     /**
      * Creates a blank space to fill the row.
      */
-    private ImageView createBlankSpace() {
-        ImageView view = new ImageView(getContext());
-        TableRow.LayoutParams params = new TableRow.LayoutParams(mSwatchLength, mSwatchLength);
-        params.setMargins(mMarginSize, mMarginSize, mMarginSize, mMarginSize);
-        view.setLayoutParams(params);
-        return view;
+    private fun createBlankSpace(): ImageView {
+        val view = ImageView(getContext())
+        val params = TableRow.LayoutParams(mSwatchLength, mSwatchLength)
+        params.setMargins(mMarginSize, mMarginSize, mMarginSize, mMarginSize)
+        view.setLayoutParams(params)
+        return view
     }
 
     /**
      * Creates a color swatch.
      */
-    private ColorPickerSwatch createColorSwatch(int color, int selectedColor) {
-        ColorPickerSwatch view = new ColorPickerSwatch(getContext(), color,
-                color == selectedColor, mOnColorSelectedListener);
-        TableRow.LayoutParams params = new TableRow.LayoutParams(mSwatchLength, mSwatchLength);
-        params.setMargins(mMarginSize, mMarginSize, mMarginSize, mMarginSize);
-        view.setLayoutParams(params);
-        return view;
+    private fun createColorSwatch(color: Int, selectedColor: Int): ColorPickerSwatch {
+        val view = ColorPickerSwatch(
+            getContext(), color,
+            color == selectedColor, mOnColorSelectedListener
+        )
+        val params = TableRow.LayoutParams(mSwatchLength, mSwatchLength)
+        params.setMargins(mMarginSize, mMarginSize, mMarginSize, mMarginSize)
+        view.setLayoutParams(params)
+        return view
     }
 }

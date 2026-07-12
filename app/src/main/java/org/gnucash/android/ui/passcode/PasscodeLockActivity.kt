@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gnucash.android.ui.passcode;
+package org.gnucash.android.ui.passcode
 
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
-import androidx.appcompat.app.AppCompatActivity;
-import android.util.Log;
-import android.view.WindowManager.LayoutParams;
-
-import org.gnucash.android.app.GnuCashApplication;
-import org.gnucash.android.ui.common.UxArgument;
+import android.content.Context
+import android.content.Intent
+import android.preference.PreferenceManager
+import android.util.Log
+import android.view.WindowManager.LayoutParams
+import androidx.appcompat.app.AppCompatActivity
+import org.gnucash.android.app.GnuCashApplication
+import org.gnucash.android.ui.common.UxArgument
 
 /**
  * This activity used as the parent class for enabling passcode lock
@@ -33,56 +32,61 @@ import org.gnucash.android.ui.common.UxArgument;
  * @see org.gnucash.android.ui.account.AccountsActivity
  * @see org.gnucash.android.ui.transaction.TransactionsActivity
  */
-public class PasscodeLockActivity extends AppCompatActivity {
+open class PasscodeLockActivity : AppCompatActivity() {
 
-    private static final String TAG = "PasscodeLockActivity";
+    override fun onResume() {
+        super.onResume()
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        boolean isPassEnabled = prefs.getBoolean(UxArgument.ENABLED_PASSCODE, false);
+        val prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+        val isPassEnabled = prefs.getBoolean(UxArgument.ENABLED_PASSCODE, false)
         if (isPassEnabled) {
-            getWindow().addFlags(LayoutParams.FLAG_SECURE);
+            window.addFlags(LayoutParams.FLAG_SECURE)
         } else {
-            getWindow().clearFlags(LayoutParams.FLAG_SECURE);
+            window.clearFlags(LayoutParams.FLAG_SECURE)
         }
 
         // Only for Android Lollipop that brings a few changes to the recent apps feature
-        if ((getIntent().getFlags() & Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0) {
-            GnuCashApplication.PASSCODE_SESSION_INIT_TIME = 0;
+        if (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0) {
+            GnuCashApplication.PASSCODE_SESSION_INIT_TIME = 0
         }
 
         // see ExportFormFragment.onPause()
-        boolean skipPasscode = prefs.getBoolean(UxArgument.SKIP_PASSCODE_SCREEN, false);
-        prefs.edit().remove(UxArgument.SKIP_PASSCODE_SCREEN).apply();
-        String passCode = prefs.getString(UxArgument.PASSCODE, "");
+        val skipPasscode = prefs.getBoolean(UxArgument.SKIP_PASSCODE_SCREEN, false)
+        prefs.edit().remove(UxArgument.SKIP_PASSCODE_SCREEN).apply()
+        val passCode = prefs.getString(UxArgument.PASSCODE, "")
 
-        if (isPassEnabled && !isSessionActive() && !passCode.trim().isEmpty() && !skipPasscode) {
-            Log.v(TAG, "Show passcode screen");
-            Intent intent = new Intent(this, PasscodeLockScreenActivity.class)
-                    .setAction(getIntent().getAction())
-                    .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                    .putExtra(UxArgument.PASSCODE_CLASS_CALLER, this.getClass().getName());
-            if (getIntent().getExtras() != null)
-                intent.putExtras(getIntent().getExtras());
-            startActivity(intent);
+        if (
+            isPassEnabled &&
+            !isSessionActive() &&
+            !passCode?.trim().isNullOrEmpty() &&
+            !skipPasscode
+        ) {
+            Log.v(TAG, "Show passcode screen")
+            val passcodeIntent = Intent(this, PasscodeLockScreenActivity::class.java)
+                .setAction(intent.action)
+                .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                .putExtra(UxArgument.PASSCODE_CLASS_CALLER, this::class.java.name)
+            intent.extras?.let { passcodeIntent.putExtras(it) }
+            startActivity(passcodeIntent)
         }
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        GnuCashApplication.PASSCODE_SESSION_INIT_TIME = System.currentTimeMillis();
+    override fun onPause() {
+        super.onPause()
+        GnuCashApplication.PASSCODE_SESSION_INIT_TIME = System.currentTimeMillis()
     }
 
     /**
-     * @return {@code true} if passcode session is active, and {@code false} otherwise
+     * @return `true` if passcode session is active, and `false` otherwise
      */
-    private boolean isSessionActive() {
-        return System.currentTimeMillis() - GnuCashApplication.PASSCODE_SESSION_INIT_TIME
-                < GnuCashApplication.SESSION_TIMEOUT;
-    }
+    private fun isSessionActive(): Boolean =
+        System.currentTimeMillis() - GnuCashApplication.PASSCODE_SESSION_INIT_TIME <
+            GnuCashApplication.SESSION_TIMEOUT
 
+    companion object {
+        private const val TAG = "PasscodeLockActivity"
+
+        @JvmField
+        val MODE_PRIVATE: Int = Context.MODE_PRIVATE
+    }
 }

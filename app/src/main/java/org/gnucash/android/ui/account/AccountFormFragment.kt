@@ -127,7 +127,7 @@ class AccountFormFragment
      * List of all descendant Account UIDs, if we are modifying an account
      * null if creating a new account
      */
-    private var mDescendantAccountUIDs: MutableList<String?>? = null
+    private var mDescendantAccountUIDs: MutableList<String>? = null
 
     /**
      * SimpleCursorAdapter for the parent account spinner
@@ -796,18 +796,20 @@ class AccountFormFragment
                 }
                 val mapAccount = HashMap<String?, Account>()
                 for (acct in accountsToUpdate) mapAccount.put(acct.getUID(), acct)
-                for (uid in mDescendantAccountUIDs) {
-                    // mAccountsDbAdapter.getDescendantAccountUIDs() will ensure a parent-child order
-                    val acct: Account = mapAccount.get(uid)!!
-                    // mAccount cannot be root, so acct here cannot be top level account.
-                    if (mAccount!!.getUID() == acct.getParentUID()) {
-                        acct.setFullName(mAccount!!.getFullName() + AccountsDbAdapter.ACCOUNT_NAME_SEPARATOR + acct.getName())
-                    } else {
-                        acct.setFullName(
-                            mapAccount.get(acct.getParentUID())!!.getFullName() +
-                                    AccountsDbAdapter.ACCOUNT_NAME_SEPARATOR +
-                                    acct.getName()
-                        )
+                mDescendantAccountUIDs?.let { accountUIDs ->
+                    accountUIDs.forEach { uid ->
+                        // mAccountsDbAdapter.getDescendantAccountUIDs() will ensure a parent-child order
+                        val acct: Account = mapAccount.get(uid)!!
+                        // mAccount cannot be root, so acct here cannot be top level account.
+                        if (mAccount!!.getUID() == acct.getParentUID()) {
+                            acct.setFullName(mAccount!!.getFullName() + AccountsDbAdapter.ACCOUNT_NAME_SEPARATOR + acct.getName())
+                        } else {
+                            acct.setFullName(
+                                mapAccount.get(acct.getParentUID())!!.getFullName() +
+                                        AccountsDbAdapter.ACCOUNT_NAME_SEPARATOR +
+                                        acct.getName()
+                            )
+                        }
                     }
                 }
             }

@@ -14,223 +14,198 @@
  * limitations under the License.
  */
 
-package org.gnucash.android.ui.common;
+package org.gnucash.android.ui.common
 
-import android.content.Intent;
-import android.graphics.drawable.ColorDrawable;
-import android.os.Build;
-import android.os.Bundle;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.appcompat.widget.Toolbar;
-import android.view.MenuItem;
-
-import org.gnucash.android.R;
-import org.gnucash.android.app.GnuCashApplication;
-import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
-import org.gnucash.android.model.db.adapter.BooksDbAdapter;
-import org.gnucash.android.ui.account.AccountFormFragment;
-import org.gnucash.android.ui.budget.BudgetAmountEditorFragment;
-import org.gnucash.android.ui.budget.BudgetFormFragment;
-import org.gnucash.android.ui.export.ExportFormFragment;
-import org.gnucash.android.ui.passcode.PasscodeLockActivity;
-import org.gnucash.android.ui.transaction.SplitEditorFragment;
-import org.gnucash.android.ui.transaction.TransactionFormFragment;
-import org.gnucash.android.ui.util.widget.CalculatorKeyboard;
-import org.gnucash.android.util.BookUtils;
-
-import dagger.hilt.android.AndroidEntryPoint;
+import android.content.Intent
+import android.graphics.drawable.ColorDrawable
+import android.os.Build
+import android.os.Bundle
+import android.view.MenuItem
+import androidx.appcompat.widget.Toolbar
+import androidx.fragment.app.Fragment
+import dagger.hilt.android.AndroidEntryPoint
+import org.gnucash.android.R
+import org.gnucash.android.app.GnuCashApplication
+import org.gnucash.android.model.db.adapter.AccountsDbAdapter
+import org.gnucash.android.model.db.adapter.BooksDbAdapter
+import org.gnucash.android.ui.account.AccountFormFragment
+import org.gnucash.android.ui.budget.BudgetAmountEditorFragment
+import org.gnucash.android.ui.budget.BudgetFormFragment
+import org.gnucash.android.ui.export.ExportFormFragment
+import org.gnucash.android.ui.passcode.PasscodeLockActivity
+import org.gnucash.android.ui.transaction.SplitEditorFragment
+import org.gnucash.android.ui.transaction.TransactionFormFragment
+import org.gnucash.android.ui.util.widget.CalculatorKeyboard
+import org.gnucash.android.util.BookUtils
 
 /**
  * Activity for displaying forms in the application.
  * The activity provides the standard close button, but it is up to the form fragments to display
  * menu options (e.g. for saving etc)
+ *
  * @author Ngewi Fet <ngewif@gmail.com>
  */
 @AndroidEntryPoint
-public class FormActivity extends PasscodeLockActivity {
+class FormActivity : PasscodeLockActivity() {
+    var currentAccountUID: String? = null
+        private set
 
-    private String mAccountUID;
+    private var onBackListener: CalculatorKeyboard? = null
 
-    private CalculatorKeyboard mOnBackListener;
+    enum class FormType {
+        ACCOUNT,
+        TRANSACTION,
+        EXPORT,
+        SPLIT_EDITOR,
+        BUDGET,
+        BUDGET_AMOUNT_EDITOR
+    }
 
-    public enum FormType {ACCOUNT, TRANSACTION, EXPORT, SPLIT_EDITOR, BUDGET, BUDGET_AMOUNT_EDITOR}
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_form);
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_form)
 
         //if a parameter was passed to open an account within a specific book, then switch
-        String bookUID = getIntent().getStringExtra(UxArgument.BOOK_UID);
-        if (bookUID != null && !bookUID.equals(BooksDbAdapter.getInstance().getActiveBookUID())){
-            BookUtils.activateBook(bookUID);
+        val bookUID = intent.getStringExtra(UxArgument.BOOK_UID)
+        if (bookUID != null && bookUID != BooksDbAdapter.getInstance().activeBookUID) {
+            BookUtils.activateBook(bookUID)
         }
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        val toolbar = findViewById<Toolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
 
-        androidx.appcompat.app.ActionBar actionBar = getSupportActionBar();
-        assert(actionBar != null);
-        actionBar.setHomeButtonEnabled(true);
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setHomeAsUpIndicator(R.drawable.ic_close_white_24dp);
+        val actionBar = checkNotNull(supportActionBar)
+        actionBar.setHomeButtonEnabled(true)
+        actionBar.setDisplayHomeAsUpEnabled(true)
+        actionBar.setHomeAsUpIndicator(R.drawable.ic_close_white_24dp)
 
-        final Intent intent = getIntent();
-        String formtypeString = intent.getStringExtra(UxArgument.FORM_TYPE);
-        FormType formType = FormType.valueOf(formtypeString);
+        val formTypeString = intent.getStringExtra(UxArgument.FORM_TYPE)
+        val formType = FormType.valueOf(formTypeString!!)
 
-        mAccountUID = intent.getStringExtra(UxArgument.SELECTED_ACCOUNT_UID);
-        if (mAccountUID == null){
-            mAccountUID = intent.getStringExtra(UxArgument.PARENT_ACCOUNT_UID);
+        currentAccountUID = intent.getStringExtra(UxArgument.SELECTED_ACCOUNT_UID)
+        if (currentAccountUID == null) {
+            currentAccountUID = intent.getStringExtra(UxArgument.PARENT_ACCOUNT_UID)
         }
-        if (mAccountUID != null) {
-            int colorCode = AccountsDbAdapter.getActiveAccountColorResource(mAccountUID);
-            actionBar.setBackgroundDrawable(new ColorDrawable(colorCode));
-            if (Build.VERSION.SDK_INT > 20)
-                getWindow().setStatusBarColor(GnuCashApplication.darken(colorCode));
-        }
-        switch (formType){
-            case ACCOUNT:
-                showAccountFormFragment(intent.getExtras());
-                break;
-
-            case TRANSACTION:
-                showTransactionFormFragment(intent.getExtras());
-                break;
-
-            case EXPORT:
-                showExportFormFragment(null);
-                break;
-
-            case SPLIT_EDITOR:
-                showSplitEditorFragment(intent.getExtras());
-                break;
-
-            case BUDGET:
-                showBudgetFormFragment(intent.getExtras());
-                break;
-
-            case BUDGET_AMOUNT_EDITOR:
-                showBudgetAmountEditorFragment(intent.getExtras());
-                break;
-
-            default:
-                throw new IllegalArgumentException("No form display type specified");
+        currentAccountUID?.let {
+            val colorCode = AccountsDbAdapter.getActiveAccountColorResource(it)
+            actionBar.setBackgroundDrawable(ColorDrawable(colorCode))
+            if (Build.VERSION.SDK_INT > 20) {
+                window.statusBarColor = GnuCashApplication.darken(colorCode)
+            }
         }
 
-
+        when (formType) {
+            FormType.ACCOUNT -> showAccountFormFragment(intent.extras)
+            FormType.TRANSACTION -> showTransactionFormFragment(intent.extras)
+            FormType.EXPORT -> showExportFormFragment(null)
+            FormType.SPLIT_EDITOR -> showSplitEditorFragment(intent.extras)
+            FormType.BUDGET -> showBudgetFormFragment(intent.extras)
+            FormType.BUDGET_AMOUNT_EDITOR -> showBudgetAmountEditorFragment(intent.extras)
+        }
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()){
-            case android.R.id.home:
-                setResult(RESULT_CANCELED);
-                finish();
-                return true;
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                setResult(RESULT_CANCELED)
+                finish()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    /**
-     * Return the GUID of the account for which the form is displayed.
-     * If the form is a transaction form, the transaction is created within that account. If it is
-     * an account form, then the GUID is the parent account
-     * @return GUID of account
-     */
-    public String getCurrentAccountUID() {
-        return mAccountUID;
     }
 
     /**
      * Shows the form for creating/editing accounts
+     *
      * @param args Arguments to use for initializing the form.
-     *             This could be an account to edit or a preset for the parent account
+     * This could be an account to edit or a preset for the parent account
      */
-    private void showAccountFormFragment(Bundle args){
-        AccountFormFragment accountFormFragment = AccountFormFragment.newInstance();
-        accountFormFragment.setArguments(args);
-        showFormFragment(accountFormFragment);
+    private fun showAccountFormFragment(args: Bundle?) {
+        val accountFormFragment = AccountFormFragment.newInstance()
+        accountFormFragment.arguments = args
+        showFormFragment(accountFormFragment)
     }
 
     /**
      * Loads the transaction insert/edit fragment and passes the arguments
+     *
      * @param args Bundle arguments to be passed to the fragment
      */
-    private void showTransactionFormFragment(Bundle args){
-        TransactionFormFragment transactionFormFragment = new TransactionFormFragment();
-        transactionFormFragment.setArguments(args);
-        showFormFragment(transactionFormFragment);
+    private fun showTransactionFormFragment(args: Bundle?) {
+        val transactionFormFragment = TransactionFormFragment()
+        transactionFormFragment.arguments = args
+        showFormFragment(transactionFormFragment)
     }
 
     /**
      * Loads the export form fragment and passes the arguments
+     *
      * @param args Bundle arguments
      */
-    private void showExportFormFragment(Bundle args){
-        ExportFormFragment exportFragment = new ExportFormFragment();
-        exportFragment.setArguments(args);
-        showFormFragment(exportFragment);
+    private fun showExportFormFragment(args: Bundle?) {
+        val exportFragment = ExportFormFragment()
+        exportFragment.arguments = args
+        showFormFragment(exportFragment)
     }
 
     /**
      * Load the split editor fragment
+     *
      * @param args View arguments
      */
-    private void showSplitEditorFragment(Bundle args){
-        SplitEditorFragment splitEditor = SplitEditorFragment.newInstance(args);
-        showFormFragment(splitEditor);
+    private fun showSplitEditorFragment(args: Bundle?) {
+        val splitEditor = SplitEditorFragment.newInstance(args)
+        showFormFragment(splitEditor)
     }
 
     /**
      * Load the budget form
+     *
      * @param args View arguments
      */
-    private void showBudgetFormFragment(Bundle args){
-        BudgetFormFragment budgetFormFragment = new BudgetFormFragment();
-        budgetFormFragment.setArguments(args);
-        showFormFragment(budgetFormFragment);
+    private fun showBudgetFormFragment(args: Bundle?) {
+        val budgetFormFragment = BudgetFormFragment()
+        budgetFormFragment.arguments = args
+        showFormFragment(budgetFormFragment)
     }
 
     /**
      * Load the budget amount editor fragment
+     *
      * @param args Arguments
      */
-    private void showBudgetAmountEditorFragment(Bundle args){
-        BudgetAmountEditorFragment fragment = BudgetAmountEditorFragment.newInstance(args);
-        showFormFragment(fragment);
+    private fun showBudgetAmountEditorFragment(args: Bundle?) {
+        val fragment = BudgetAmountEditorFragment.newInstance(args)
+        showFormFragment(fragment)
     }
 
     /**
      * Loads the fragment into the fragment container, replacing whatever was there before
+     *
      * @param fragment Fragment to be displayed
      */
-    private void showFormFragment(Fragment fragment){
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager
-                .beginTransaction();
+    private fun showFormFragment(fragment: Fragment) {
+        val fragmentTransaction = supportFragmentManager
+            .beginTransaction()
 
-        fragmentTransaction.add(R.id.fragment_container, fragment);
-        fragmentTransaction.commit();
+        fragmentTransaction.add(R.id.fragment_container, fragment)
+        fragmentTransaction.commit()
     }
 
-
-    public void setOnBackListener(CalculatorKeyboard keyboard) {
-        mOnBackListener = keyboard;
+    fun setOnBackListener(keyboard: CalculatorKeyboard?) {
+        onBackListener = keyboard
     }
 
-    @Override
-    public void onBackPressed() {
-        boolean eventProcessed = false;
+    override fun onBackPressed() {
+        var eventProcessed = false
 
-        if (mOnBackListener != null)
-            eventProcessed = mOnBackListener.onBackPressed();
+        if (onBackListener != null) {
+            eventProcessed = onBackListener!!.onBackPressed()
+        }
 
-        if (!eventProcessed)
-            super.onBackPressed();
+        if (!eventProcessed) {
+            super.onBackPressed()
+        }
     }
-
 }

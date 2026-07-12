@@ -92,7 +92,7 @@ class AccountsActivity : BaseDrawerActivity(), OnAccountClickedListener {
     private var mCoordinatorLayout: CoordinatorLayout? = null
 
     @Inject
-    var mRepository: Repository? = null
+    lateinit var mRepository: Repository
 
     /**
      * Configuration for rating the app
@@ -425,6 +425,7 @@ class AccountsActivity : BaseDrawerActivity(), OnAccountClickedListener {
         /**
          * Show dialog with new features for this version
          */
+        @JvmStatic
         fun showWhatsNewDialog(context: Context): AlertDialog? {
             val resources = context.getResources()
             val releaseTitle = StringBuilder(resources.getString(R.string.title_whats_new))
@@ -453,6 +454,7 @@ class AccountsActivity : BaseDrawerActivity(), OnAccountClickedListener {
         /**
          * Displays the dialog for exporting transactions
          */
+        @JvmStatic
         fun openExportFragment(activity: AppCompatActivity) {
             val intent = Intent(activity, FormActivity::class.java)
             intent.putExtra(UxArgument.FORM_TYPE, FormActivity.FormType.EXPORT.name)
@@ -466,6 +468,7 @@ class AccountsActivity : BaseDrawerActivity(), OnAccountClickedListener {
          * @param currencyCode Currency code to assign to the imported accounts
          * @param activity Activity for providing context and displaying dialogs
          */
+        @JvmStatic
         fun createDefaultAccounts(currencyCode: String?, activity: Activity?) {
             val uri =
                 Uri.parse("android.resource://" + BuildConfig.APPLICATION_ID + "/" + R.raw.default_accounts)
@@ -519,6 +522,7 @@ class AccountsActivity : BaseDrawerActivity(), OnAccountClickedListener {
          * @param activity Activity starting the request and will also handle the response
          * @see .importXmlFileFromIntent
          */
+        @JvmStatic
         fun startXmlFileChooser(activity: Activity) {
             val pickIntent = Intent(Intent.ACTION_GET_CONTENT)
             pickIntent.addCategory(Intent.CATEGORY_OPENABLE)
@@ -544,6 +548,7 @@ class AccountsActivity : BaseDrawerActivity(), OnAccountClickedListener {
          * @param fragment Fragment creating the chooser and which will also handle the result
          * @see .startXmlFileChooser
          */
+        @JvmStatic
         fun startXmlFileChooser(fragment: Fragment) {
             val pickIntent = Intent(Intent.ACTION_GET_CONTENT)
             pickIntent.addCategory(Intent.CATEGORY_OPENABLE)
@@ -570,6 +575,7 @@ class AccountsActivity : BaseDrawerActivity(), OnAccountClickedListener {
          * Starts the AccountsActivity and clears the activity stack
          * @param context Application context
          */
+        @JvmStatic
         fun start(context: Context) {
             val accountsActivityIntent = Intent(context, AccountsActivity::class.java)
             accountsActivityIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -581,6 +587,7 @@ class AccountsActivity : BaseDrawerActivity(), OnAccountClickedListener {
          * Removes the flag indicating that the app is being run for the first time.
          * This is called every time the app is started because the next time won't be the first time
          */
+        @JvmStatic
         fun removeFirstRunFlag() {
             val context = GnuCashApplication.getAppContext()
             val editor = PreferenceManager.getDefaultSharedPreferences(context).edit()

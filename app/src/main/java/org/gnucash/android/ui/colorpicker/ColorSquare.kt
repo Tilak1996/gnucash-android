@@ -1,6 +1,4 @@
-package org.gnucash.android.ui.colorpicker;
-
-/*
+package org.gnucash.android.ui.colorpicker /*
  * Copyright (C) 2013 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,30 +14,27 @@ package org.gnucash.android.ui.colorpicker;
  * limitations under the License.
  */
 
-import android.content.Context;
-import android.graphics.drawable.Drawable;
-import android.util.AttributeSet;
-import android.widget.QuickContactBadge;
-
-import org.gnucash.android.R;
+import android.content.Context
+import android.graphics.drawable.Drawable
+import android.util.AttributeSet
+import android.widget.QuickContactBadge
+import org.gnucash.android.R
 
 /**
- * The color square used as an entry point to launching the {@link ColorPickerDialog}.
+ * The color square used as an entry point to launching the [ColorPickerDialog].
  */
-public class ColorSquare extends QuickContactBadge {
+class ColorSquare : QuickContactBadge {
+    constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)
 
-    public ColorSquare(Context context, AttributeSet attrs) {
-        super(context, attrs);
-    }
+    constructor(context: Context?, attrs: AttributeSet?, defStyle: Int) : super(
+        context,
+        attrs,
+        defStyle
+    )
 
-    public ColorSquare(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs, defStyle);
-    }
-
-    @Override
-    public void setBackgroundColor(int color) {
-        Drawable[] colorDrawable = new Drawable[] {
-                getContext().getResources().getDrawable(R.drawable.color_square) };
-        setImageDrawable(new ColorStateDrawable(colorDrawable, color));
+    override fun setBackgroundColor(color: Int) {
+        val colorDrawable =
+            arrayOf<Drawable?>(getContext().getResources().getDrawable(R.drawable.color_square))
+        setImageDrawable(ColorStateDrawable(colorDrawable, color))
     }
 }

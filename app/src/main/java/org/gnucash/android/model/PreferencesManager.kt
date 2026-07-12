@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 import dagger.hilt.android.qualifiers.ApplicationContext
 import org.gnucash.android.R
 import org.gnucash.android.model.db.adapter.BooksDbAdapter
-import org.gnucash.android.ui.passcode.PasscodeLockActivity.MODE_PRIVATE
+import org.gnucash.android.ui.passcode.PasscodeLockActivity.Companion.MODE_PRIVATE
 import javax.inject.Inject
 import javax.inject.Singleton
 

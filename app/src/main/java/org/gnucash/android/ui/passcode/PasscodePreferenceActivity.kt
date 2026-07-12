@@ -14,73 +14,71 @@
  * limitations under the License.
  */
 
-package org.gnucash.android.ui.passcode;
+package org.gnucash.android.ui.passcode
 
-import android.content.Intent;
-import android.os.Bundle;
-import android.preference.PreferenceManager;
-import androidx.appcompat.app.AppCompatActivity;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import org.gnucash.android.R;
-import org.gnucash.android.ui.common.UxArgument;
+import android.content.Intent
+import android.os.Bundle
+import android.preference.PreferenceManager
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import org.gnucash.android.R
+import org.gnucash.android.ui.common.UxArgument
 
 /**
  * Activity for entering and confirming passcode
  * @author Oleksandr Tyshkovets <olexandr.tyshkovets@gmail.com>
  */
-public class PasscodePreferenceActivity extends AppCompatActivity
-        implements KeyboardFragment.OnPasscodeEnteredListener {
+class PasscodePreferenceActivity : AppCompatActivity(), KeyboardFragment.OnPasscodeEnteredListener {
 
-    private boolean mIsPassEnabled;
-    private boolean mReenter = false;
-    private String mPasscode;
+    private var isPassEnabled = false
+    private var reenter = false
+    private lateinit var passcode: String
+    private lateinit var passTextView: TextView
 
-    private TextView mPassTextView;
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.passcode_lockscreen)
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.passcode_lockscreen);
+        passTextView = findViewById(R.id.passcode_label)
 
-        mPassTextView = (TextView) findViewById(R.id.passcode_label);
+        isPassEnabled = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+            .getBoolean(UxArgument.ENABLED_PASSCODE, false)
 
-        mIsPassEnabled = PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
-                .getBoolean(UxArgument.ENABLED_PASSCODE, false);
-
-        if (mIsPassEnabled) {
-            mPassTextView.setText(R.string.label_old_passcode);
+        if (isPassEnabled) {
+            passTextView.setText(R.string.label_old_passcode)
         }
     }
 
-    @Override
-    public void onPasscodeEntered(String pass) {
-        String passCode = PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
-                .getString(UxArgument.PASSCODE, "");
+    override fun onPasscodeEntered(pass: String) {
+        val savedPasscode = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+            .getString(UxArgument.PASSCODE, "")
 
-        if (mIsPassEnabled) {
-            if (pass.equals(passCode)) {
-                mIsPassEnabled = false;
-                mPassTextView.setText(R.string.label_new_passcode);
+        if (isPassEnabled) {
+            if (pass == savedPasscode) {
+                isPassEnabled = false
+                passTextView.setText(R.string.label_new_passcode)
             } else {
-                Toast.makeText(this, R.string.toast_wrong_passcode, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.toast_wrong_passcode, Toast.LENGTH_SHORT).show()
             }
-            return;
+            return
         }
 
-        if (mReenter) {
-            if (mPasscode.equals(pass)) {
-                setResult(RESULT_OK, new Intent().putExtra(UxArgument.PASSCODE, pass));
-                finish();
+        if (reenter) {
+            if (passcode == pass) {
+                setResult(RESULT_OK, Intent().putExtra(UxArgument.PASSCODE, pass))
+                finish()
             } else {
-                Toast.makeText(this, R.string.toast_invalid_passcode_confirmation, Toast.LENGTH_LONG).show();
+                Toast.makeText(
+                    this,
+                    R.string.toast_invalid_passcode_confirmation,
+                    Toast.LENGTH_LONG
+                ).show()
             }
         } else {
-            mPasscode = pass;
-            mReenter = true;
-            mPassTextView.setText(R.string.label_confirm_passcode);
+            passcode = pass
+            reenter = true
+            passTextView.setText(R.string.label_confirm_passcode)
         }
     }
-
 }

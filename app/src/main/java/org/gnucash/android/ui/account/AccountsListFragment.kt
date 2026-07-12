@@ -55,7 +55,6 @@ import org.gnucash.android.model.db.DatabaseCursorLoader
 import org.gnucash.android.model.db.DatabaseSchema
 import org.gnucash.android.model.db.adapter.AccountsDbAdapter
 import org.gnucash.android.model.db.adapter.BudgetsDbAdapter
-import org.gnucash.android.ui.account.AccountsListFragment.AccountRecyclerAdapter.AccountViewHolder
 import org.gnucash.android.ui.common.FormActivity
 import org.gnucash.android.ui.common.Refreshable
 import org.gnucash.android.ui.common.UxArgument
@@ -77,7 +76,7 @@ class AccountsListFragment : Fragment(), Refreshable, LoaderManager.LoaderCallba
     private var mEmptyTextView: TextView? = null
 
     @Inject
-    var mRepository: Repository? = null
+    lateinit var mRepository: Repository
 
     /**
      * Describes the kinds of accounts that should be loaded in the accounts list.
@@ -435,7 +434,7 @@ class AccountsListFragment : Fragment(), Refreshable, LoaderManager.LoaderCallba
 
 
     private inner class AccountRecyclerAdapter(cursor: Cursor?) :
-        CursorRecyclerAdapter<AccountViewHolder>(cursor) {
+        CursorRecyclerAdapter<AccountRecyclerAdapter.AccountViewHolder>(cursor) {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AccountViewHolder {
             val v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.cardview_account, parent, false)
