@@ -1,407 +1,327 @@
 /*
  * Copyright (c) 2015 Oleksandr Tyshkovets <olexandr.tyshkovets@gmail.com>
  * Copyright (c) 2015 Ngewi Fet <ngewif@gmail.com>
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
+package org.gnucash.android.ui.report.linechart
 
-package org.gnucash.android.ui.report.linechart;
+import android.graphics.Color
+import android.os.Bundle
+import android.util.Log
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
+import com.github.mikephil.charting.charts.LineChart
+import com.github.mikephil.charting.components.Legend
+import com.github.mikephil.charting.components.LimitLine
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
+import com.github.mikephil.charting.highlight.Highlight
+import com.github.mikephil.charting.utils.LargeValueFormatter
+import org.gnucash.android.R
+import org.gnucash.android.model.data.AccountType
+import org.gnucash.android.model.db.adapter.AccountsDbAdapter
+import org.gnucash.android.model.db.adapter.TransactionsDbAdapter
+import org.gnucash.android.ui.report.BaseReportFragment
+import org.gnucash.android.ui.report.ReportType
+import org.gnucash.android.ui.report.ReportsActivity.GroupInterval
+import org.joda.time.LocalDate
+import org.joda.time.LocalDateTime
+import java.util.Collections
 
-import android.graphics.Color;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
+/** Fragment for cash-flow line chart reports. */
+class CashFlowLineChartFragment : BaseReportFragment() {
+    private val accountsDbAdapter = AccountsDbAdapter.getInstance()
+    private val earliestTimestamps = mutableMapOf<AccountType, Long>()
+    private val latestTimestamps = mutableMapOf<AccountType, Long>()
+    private var earliestTransactionTimestamp = 0L
+    private var latestTransactionTimestamp = 0L
+    private var chartDataPresent = true
+    private lateinit var chart: LineChart
 
-import androidx.annotation.Nullable;
+    override val layoutResource = R.layout.fragment_line_chart
+    override val title = R.string.title_cash_flow_report
+    override val reportType = ReportType.LINE_CHART
 
-import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.Legend;
-import com.github.mikephil.charting.components.LimitLine;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.highlight.Highlight;
-import com.github.mikephil.charting.utils.LargeValueFormatter;
+    override fun requiresAccountTypeOptions() = false
 
-import org.gnucash.android.R;
-import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
-import org.gnucash.android.model.db.adapter.TransactionsDbAdapter;
-import org.gnucash.android.model.data.Account;
-import org.gnucash.android.model.data.AccountType;
-import org.gnucash.android.ui.report.BaseReportFragment;
-import org.gnucash.android.ui.report.ReportType;
-import org.gnucash.android.ui.report.ReportsActivity.GroupInterval;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-/**
- * Fragment for line chart reports
- *
- * @author Oleksandr Tyshkovets <olexandr.tyshkovets@gmail.com>
- * @author Ngewi Fet <ngewif@gmail.com>
- */
-public class CashFlowLineChartFragment extends BaseReportFragment {
-
-    private static final String X_AXIS_PATTERN = "MMM YY";
-    private static final int ANIMATION_DURATION = 3000;
-    private static final int NO_DATA_BAR_COUNTS = 5;
-    private static final int[] COLORS = {
-            Color.parseColor("#68F1AF"), Color.parseColor("#cc1f09"), Color.parseColor("#EE8600"),
-            Color.parseColor("#1469EB"), Color.parseColor("#B304AD"),
-    };
-    private static final int[] FILL_COLORS = {
-            Color.parseColor("#008000"), Color.parseColor("#FF0000"), Color.parseColor("#BE6B00"),
-            Color.parseColor("#0065FF"), Color.parseColor("#8F038A"),
-    };
-
-    private AccountsDbAdapter mAccountsDbAdapter = AccountsDbAdapter.getInstance();
-    private Map<AccountType, Long> mEarliestTimestampsMap = new HashMap<>();
-    private Map<AccountType, Long> mLatestTimestampsMap = new HashMap<>();
-    private long mEarliestTransactionTimestamp;
-    private long mLatestTransactionTimestamp;
-    private boolean mChartDataPresent = true;
-
-    private LineChart mChart;
-
-    @Override
-    public int getLayoutResource() {
-        return R.layout.fragment_line_chart;
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        val view = super.onCreateView(inflater, container, savedInstanceState)
+        chart = view.findViewById(R.id.line_chart)
+        return view
     }
 
-    @Override
-    public int getTitle() {
-        return R.string.title_cash_flow_report;
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        chart.setOnChartValueSelectedListener(this)
+        chart.setDescription("")
+        chart.xAxis.setDrawGridLines(false)
+        chart.axisRight.isEnabled = false
+        chart.axisLeft.enableGridDashedLine(4f, 4f, 0f)
+        chart.axisLeft.valueFormatter = LargeValueFormatter(mCommodity.getSymbol())
+        chart.legend.apply {
+            position = Legend.LegendPosition.BELOW_CHART_CENTER
+            textSize = 16f
+            form = Legend.LegendForm.CIRCLE
+        }
     }
 
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-        mChart.setOnChartValueSelectedListener(this);
-        mChart.setDescription("");
-        mChart.getXAxis().setDrawGridLines(false);
-        mChart.getAxisRight().setEnabled(false);
-        mChart.getAxisLeft().enableGridDashedLine(4.0f, 4.0f, 0);
-        mChart.getAxisLeft().setValueFormatter(new LargeValueFormatter(mCommodity.getSymbol()));
-
-        Legend legend = mChart.getLegend();
-        legend.setPosition(Legend.LegendPosition.BELOW_CHART_CENTER);
-        legend.setTextSize(16);
-        legend.setForm(Legend.LegendForm.CIRCLE);
-
-    }
-
-    @Nullable
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View v = super.onCreateView(inflater, container, savedInstanceState);
-        mChart = v.findViewById(R.id.line_chart);
-        return v;
-    }
-
-    @Override
-    public ReportType getReportType() {
-        return ReportType.LINE_CHART;
-    }
-
-    /**
-     * Returns a data object that represents a user data of the specified account types
-     * @param accountTypeList account's types which will be displayed
-     * @return a {@code LineData} instance that represents a user data
-     */
-    private LineData getData(List<AccountType> accountTypeList) {
-        Log.w(TAG, "getData");
-        calculateEarliestAndLatestTimestamps(accountTypeList);
-        // LocalDateTime?
-        LocalDate startDate;
-        LocalDate endDate;
-        if (mReportPeriodStart == -1 && mReportPeriodEnd == -1) {
-            startDate = new LocalDate(mEarliestTransactionTimestamp).withDayOfMonth(1);
-            endDate = new LocalDate(mLatestTransactionTimestamp).withDayOfMonth(1);
+    private fun getData(accountTypes: MutableList<AccountType>): LineData {
+        Log.w(TAG, "getData")
+        calculateEarliestAndLatestTimestamps(accountTypes)
+        var startDate: LocalDate
+        val endDate: LocalDate
+        if (mReportPeriodStart == -1L && mReportPeriodEnd == -1L) {
+            startDate = LocalDate(earliestTransactionTimestamp).withDayOfMonth(1)
+            endDate = LocalDate(latestTransactionTimestamp).withDayOfMonth(1)
         } else {
-            startDate = new LocalDate(mReportPeriodStart).withDayOfMonth(1);
-            endDate = new LocalDate(mReportPeriodEnd).withDayOfMonth(1);
+            startDate = LocalDate(mReportPeriodStart).withDayOfMonth(1)
+            endDate = LocalDate(mReportPeriodEnd).withDayOfMonth(1)
         }
 
-        int count = getDateDiff(new LocalDateTime(startDate.toDate().getTime()), new LocalDateTime(endDate.toDate().getTime()));
-        Log.d(TAG, "X-axis count" + count);
-        List<String> xValues = new ArrayList<>();
-        for (int i = 0; i <= count; i++) {
-            switch (mGroupInterval) {
-                case MONTH:
-                    xValues.add(startDate.toString(X_AXIS_PATTERN));
-                    Log.d(TAG, "X-axis " + startDate.toString("MM yy"));
-                    startDate = startDate.plusMonths(1);
-                    break;
-                case QUARTER:
-                    int quarter = getQuarter(new LocalDateTime(startDate.toDate().getTime()));
-                    xValues.add("Q" + quarter + startDate.toString(" yy"));
-                    Log.d(TAG, "X-axis " + "Q" + quarter + startDate.toString(" MM yy"));
-                    startDate = startDate.plusMonths(3);
-                    break;
-                case YEAR:
-                    xValues.add(startDate.toString("yyyy"));
-                    Log.d(TAG, "X-axis " + startDate.toString("yyyy"));
-                    startDate = startDate.plusYears(1);
-                    break;
-//                default:
-            }
-        }
-
-        List<LineDataSet> dataSets = new ArrayList<>();
-        for (AccountType accountType : accountTypeList) {
-            LineDataSet set = new LineDataSet(getEntryList(accountType), accountType.toString());
-            set.setDrawFilled(true);
-            set.setLineWidth(2);
-            set.setColor(COLORS[dataSets.size()]);
-            set.setFillColor(FILL_COLORS[dataSets.size()]);
-
-            dataSets.add(set);
-        }
-
-        LineData lineData = new LineData(xValues, dataSets);
-        if (lineData.getYValueSum() == 0) {
-            mChartDataPresent = false;
-            return getEmptyData();
-        }
-        return lineData;
-    }
-
-    /**
-     * Returns a data object that represents situation when no user data available
-     * @return a {@code LineData} instance for situation when no user data available
-     */
-    private LineData getEmptyData() {
-        List<String> xValues = new ArrayList<>();
-        List<Entry> yValues = new ArrayList<>();
-        for (int i = 0; i < NO_DATA_BAR_COUNTS; i++) {
-            xValues.add("");
-            yValues.add(new Entry(i % 2 == 0 ? 5f : 4.5f, i));
-        }
-        LineDataSet set = new LineDataSet(yValues, getResources().getString(R.string.label_chart_no_data));
-        set.setDrawFilled(true);
-        set.setDrawValues(false);
-        set.setColor(NO_DATA_COLOR);
-        set.setFillColor(NO_DATA_COLOR);
-
-        return new LineData(xValues, Collections.singletonList(set));
-    }
-
-    /**
-     * Returns entries which represent a user data of the specified account type
-     * @param accountType account's type which user data will be processed
-     * @return entries which represent a user data
-     */
-    private List<Entry> getEntryList(AccountType accountType) {
-        List<String> accountUIDList = new ArrayList<>();
-        for (Account account : mAccountsDbAdapter.getSimpleAccountList()) {
-            if (account.getAccountType() == accountType
-                    && !account.isPlaceholderAccount()
-                    && account.getCommodity().equals(mCommodity)) {
-                accountUIDList.add(account.getUID());
-            }
-        }
-
-        LocalDateTime earliest;
-        LocalDateTime latest;
-        if (mReportPeriodStart == -1 && mReportPeriodEnd == -1) {
-            earliest = new LocalDateTime(mEarliestTimestampsMap.get(accountType));
-            latest = new LocalDateTime(mLatestTimestampsMap.get(accountType));
-        } else {
-            earliest = new LocalDateTime(mReportPeriodStart);
-            latest = new LocalDateTime(mReportPeriodEnd);
-        }
-        Log.d(TAG, "Earliest " + accountType + " date " + earliest.toString("dd MM yyyy"));
-        Log.d(TAG, "Latest " + accountType + " date " + latest.toString("dd MM yyyy"));
-
-        int xAxisOffset = getDateDiff(new LocalDateTime(mEarliestTransactionTimestamp), earliest);
-        int count = getDateDiff(earliest, latest);
-        List<Entry> values = new ArrayList<>(count + 1);
-        for (int i = 0; i <= count; i++) {
-            long start = 0;
-            long end = 0;
-            switch (mGroupInterval) {
-                case QUARTER:
-                    int quarter = getQuarter(earliest);
-                    start = earliest.withMonthOfYear(quarter * 3 - 2).dayOfMonth().withMinimumValue().millisOfDay().withMinimumValue().toDate().getTime();
-                    end = earliest.withMonthOfYear(quarter * 3).dayOfMonth().withMaximumValue().millisOfDay().withMaximumValue().toDate().getTime();
-
-                    earliest = earliest.plusMonths(3);
-                    break;
-                case MONTH:
-                    start = earliest.dayOfMonth().withMinimumValue().millisOfDay().withMinimumValue().toDate().getTime();
-                    end = earliest.dayOfMonth().withMaximumValue().millisOfDay().withMaximumValue().toDate().getTime();
-
-                    earliest = earliest.plusMonths(1);
-                    break;
-                case YEAR:
-                    start = earliest.dayOfYear().withMinimumValue().millisOfDay().withMinimumValue().toDate().getTime();
-                    end = earliest.dayOfYear().withMaximumValue().millisOfDay().withMaximumValue().toDate().getTime();
-
-                    earliest = earliest.plusYears(1);
-                    break;
-            }
-            float balance = (float) mAccountsDbAdapter.getAccountsBalance(accountUIDList, start, end).asDouble();
-            values.add(new Entry(balance, i + xAxisOffset));
-            Log.d(TAG, accountType + earliest.toString(" MMM yyyy") + ", balance = " + balance);
-
-        }
-
-        return values;
-    }
-
-    /**
-     * Calculates the earliest and latest transaction's timestamps of the specified account types
-     * @param accountTypeList account's types which will be processed
-     */
-    private void calculateEarliestAndLatestTimestamps(List<AccountType> accountTypeList) {
-        if (mReportPeriodStart != -1 && mReportPeriodEnd != -1) {
-            mEarliestTransactionTimestamp = mReportPeriodStart;
-            mLatestTransactionTimestamp = mReportPeriodEnd;
-            return;
-        }
-
-        TransactionsDbAdapter dbAdapter = TransactionsDbAdapter.getInstance();
-        for (Iterator<AccountType> iter = accountTypeList.iterator(); iter.hasNext();) {
-            AccountType type = iter.next();
-            long earliest = dbAdapter.getTimestampOfEarliestTransaction(type, mCommodity.getCurrencyCode());
-            long latest = dbAdapter.getTimestampOfLatestTransaction(type, mCommodity.getCurrencyCode());
-            if (earliest > 0 && latest > 0) {
-                mEarliestTimestampsMap.put(type, earliest);
-                mLatestTimestampsMap.put(type, latest);
-            } else {
-                iter.remove();
-            }
-        }
-
-        if (mEarliestTimestampsMap.isEmpty() || mLatestTimestampsMap.isEmpty()) {
-            return;
-        }
-
-        List<Long> timestamps = new ArrayList<>(mEarliestTimestampsMap.values());
-        timestamps.addAll(mLatestTimestampsMap.values());
-        Collections.sort(timestamps);
-        mEarliestTransactionTimestamp = timestamps.get(0);
-        mLatestTransactionTimestamp = timestamps.get(timestamps.size() - 1);
-    }
-
-    @Override
-    public boolean requiresAccountTypeOptions() {
-        return false;
-    }
-
-    @Override
-    protected void generateReport() {
-        LineData lineData = getData(new ArrayList<>(Arrays.asList(AccountType.INCOME, AccountType.EXPENSE)));
-        if (lineData != null) {
-            mChart.setData(lineData);
-            mChartDataPresent = true;
-        } else {
-            mChartDataPresent = false;
-        }
-    }
-
-    @Override
-    protected void displayReport() {
-        if (!mChartDataPresent) {
-            mChart.getAxisLeft().setAxisMaxValue(10);
-            mChart.getAxisLeft().setDrawLabels(false);
-            mChart.getXAxis().setDrawLabels(false);
-            mChart.setTouchEnabled(false);
-            mSelectedValueTextView.setText(getResources().getString(R.string.label_chart_no_data));
-        } else {
-            mChart.animateX(ANIMATION_DURATION);
-        }
-        mChart.invalidate();
-    }
-
-    @Override
-    public void onTimeRangeUpdated(long start, long end) {
-        if (mReportPeriodStart != start || mReportPeriodEnd != end) {
-            mReportPeriodStart = start;
-            mReportPeriodEnd = end;
-            mChart.setData(getData(new ArrayList<>(Arrays.asList(AccountType.INCOME, AccountType.EXPENSE))));
-            mChart.invalidate();
-        }
-    }
-
-    @Override
-    public void onGroupingUpdated(GroupInterval groupInterval) {
-        if (mGroupInterval != groupInterval) {
-            mGroupInterval = groupInterval;
-            mChart.setData(getData(new ArrayList<>(Arrays.asList(AccountType.INCOME, AccountType.EXPENSE))));
-            mChart.invalidate();
-        }
-    }
-
-    @Override
-    public void onPrepareOptionsMenu(Menu menu) {
-        menu.findItem(R.id.menu_toggle_average_lines).setVisible(mChartDataPresent);
-        // hide pie/bar chart specific menu items
-        menu.findItem(R.id.menu_order_by_size).setVisible(false);
-        menu.findItem(R.id.menu_toggle_labels).setVisible(false);
-        menu.findItem(R.id.menu_percentage_mode).setVisible(false);
-        menu.findItem(R.id.menu_group_other_slice).setVisible(false);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.isCheckable())
-            item.setChecked(!item.isChecked());
-        switch (item.getItemId()) {
-            case R.id.menu_toggle_legend:
-                mChart.getLegend().setEnabled(!mChart.getLegend().isEnabled());
-                mChart.invalidate();
-                return true;
-
-            case R.id.menu_toggle_average_lines:
-                if (mChart.getAxisLeft().getLimitLines().isEmpty()) {
-                    for (LineDataSet set : mChart.getData().getDataSets()) {
-                        LimitLine line = new LimitLine(set.getYValueSum() / set.getEntryCount(), set.getLabel());
-                        line.enableDashedLine(10, 5, 0);
-                        line.setLineColor(set.getColor());
-                        mChart.getAxisLeft().addLimitLine(line);
-                    }
-                } else {
-                    mChart.getAxisLeft().removeAllLimitLines();
+        val count = getDateDiff(
+            LocalDateTime(startDate.toDate().time),
+            LocalDateTime(endDate.toDate().time)
+        )
+        Log.d(TAG, "X-axis count$count")
+        val xValues = mutableListOf<String>()
+        for (index in 0..count) {
+            when (mGroupInterval) {
+                GroupInterval.MONTH -> {
+                    xValues.add(startDate.toString(X_AXIS_PATTERN))
+                    Log.d(TAG, "X-axis ${startDate.toString("MM yy")}")
+                    startDate = startDate.plusMonths(1)
                 }
-                mChart.invalidate();
-                return true;
+                GroupInterval.QUARTER -> {
+                    val quarter = getQuarter(LocalDateTime(startDate.toDate().time))
+                    xValues.add("Q$quarter${startDate.toString(" yy")}")
+                    Log.d(TAG, "X-axis Q$quarter${startDate.toString(" MM yy")}")
+                    startDate = startDate.plusMonths(3)
+                }
+                GroupInterval.YEAR -> {
+                    xValues.add(startDate.toString("yyyy"))
+                    Log.d(TAG, "X-axis ${startDate.toString("yyyy")}")
+                    startDate = startDate.plusYears(1)
+                }
+                else -> Unit
+            }
+        }
 
-            default:
-                return super.onOptionsItemSelected(item);
+        val dataSets = mutableListOf<LineDataSet>()
+        for (accountType in accountTypes) {
+            val dataSet = LineDataSet(getEntryList(accountType), accountType.toString())
+            dataSet.setDrawFilled(true)
+            dataSet.lineWidth = 2f
+            dataSet.color = COLORS[dataSets.size]
+            dataSet.fillColor = FILL_COLORS[dataSets.size]
+            dataSets.add(dataSet)
+        }
+        val lineData = LineData(xValues, dataSets)
+        if (lineData.yValueSum == 0f) {
+            chartDataPresent = false
+            return emptyData
+        }
+        return lineData
+    }
+
+    private val emptyData: LineData
+        get() {
+            val xValues = MutableList(NO_DATA_BAR_COUNTS) { "" }
+            val yValues = MutableList(NO_DATA_BAR_COUNTS) {
+                Entry(if (it % 2 == 0) 5f else 4.5f, it)
+            }
+            val dataSet = LineDataSet(yValues, resources.getString(R.string.label_chart_no_data))
+            dataSet.setDrawFilled(true)
+            dataSet.setDrawValues(false)
+            dataSet.color = NO_DATA_COLOR
+            dataSet.fillColor = NO_DATA_COLOR
+            return LineData(xValues, Collections.singletonList(dataSet))
+        }
+
+    private fun getEntryList(accountType: AccountType): List<Entry> {
+        val accountUIDs = mutableListOf<String>()
+        for (account in accountsDbAdapter.getSimpleAccountList()) {
+            if (account.getAccountType() == accountType &&
+                !account.isPlaceholderAccount() && account.getCommodity() == mCommodity
+            ) accountUIDs.add(account.getUID())
+        }
+
+        var earliest: LocalDateTime
+        val latest: LocalDateTime
+        if (mReportPeriodStart == -1L && mReportPeriodEnd == -1L) {
+            earliest = LocalDateTime(earliestTimestamps.getValue(accountType))
+            latest = LocalDateTime(latestTimestamps.getValue(accountType))
+        } else {
+            earliest = LocalDateTime(mReportPeriodStart)
+            latest = LocalDateTime(mReportPeriodEnd)
+        }
+        Log.d(TAG, "Earliest $accountType date ${earliest.toString("dd MM yyyy")}")
+        Log.d(TAG, "Latest $accountType date ${latest.toString("dd MM yyyy")}")
+
+        val xAxisOffset = getDateDiff(LocalDateTime(earliestTransactionTimestamp), earliest)
+        val count = getDateDiff(earliest, latest)
+        val values = ArrayList<Entry>(count + 1)
+        for (index in 0..count) {
+            var start = 0L
+            var end = 0L
+            when (mGroupInterval) {
+                GroupInterval.QUARTER -> {
+                    val quarter = getQuarter(earliest)
+                    start = earliest.withMonthOfYear(quarter * 3 - 2).dayOfMonth()
+                        .withMinimumValue().millisOfDay().withMinimumValue().toDate().time
+                    end = earliest.withMonthOfYear(quarter * 3).dayOfMonth()
+                        .withMaximumValue().millisOfDay().withMaximumValue().toDate().time
+                    earliest = earliest.plusMonths(3)
+                }
+                GroupInterval.MONTH -> {
+                    start = earliest.dayOfMonth().withMinimumValue().millisOfDay()
+                        .withMinimumValue().toDate().time
+                    end = earliest.dayOfMonth().withMaximumValue().millisOfDay()
+                        .withMaximumValue().toDate().time
+                    earliest = earliest.plusMonths(1)
+                }
+                GroupInterval.YEAR -> {
+                    start = earliest.dayOfYear().withMinimumValue().millisOfDay()
+                        .withMinimumValue().toDate().time
+                    end = earliest.dayOfYear().withMaximumValue().millisOfDay()
+                        .withMaximumValue().toDate().time
+                    earliest = earliest.plusYears(1)
+                }
+                else -> Unit
+            }
+            val balance = accountsDbAdapter.getAccountsBalance(accountUIDs, start, end)
+                .asDouble().toFloat()
+            values.add(Entry(balance, index + xAxisOffset))
+            Log.d(TAG, "$accountType${earliest.toString(" MMM yyyy")}, balance = $balance")
+        }
+        return values
+    }
+
+    private fun calculateEarliestAndLatestTimestamps(accountTypes: MutableList<AccountType>) {
+        if (mReportPeriodStart != -1L && mReportPeriodEnd != -1L) {
+            earliestTransactionTimestamp = mReportPeriodStart
+            latestTransactionTimestamp = mReportPeriodEnd
+            return
+        }
+        val adapter = TransactionsDbAdapter.getInstance()
+        val iterator = accountTypes.iterator()
+        while (iterator.hasNext()) {
+            val type = iterator.next()
+            val earliest = adapter.getTimestampOfEarliestTransaction(type, mCommodity.getCurrencyCode())
+            val latest = adapter.getTimestampOfLatestTransaction(type, mCommodity.getCurrencyCode())
+            if (earliest > 0 && latest > 0) {
+                earliestTimestamps[type] = earliest
+                latestTimestamps[type] = latest
+            } else iterator.remove()
+        }
+        if (earliestTimestamps.isEmpty() || latestTimestamps.isEmpty()) return
+        val timestamps = (earliestTimestamps.values + latestTimestamps.values).sorted()
+        earliestTransactionTimestamp = timestamps.first()
+        latestTransactionTimestamp = timestamps.last()
+    }
+
+    override fun generateReport() {
+        val lineData = getData(mutableListOf(AccountType.INCOME, AccountType.EXPENSE))
+        chart.data = lineData
+        chartDataPresent = true
+    }
+
+    override fun displayReport() {
+        if (!chartDataPresent) {
+            chart.axisLeft.axisMaxValue = 10f
+            chart.axisLeft.setDrawLabels(false)
+            chart.xAxis.setDrawLabels(false)
+            chart.setTouchEnabled(false)
+            mSelectedValueTextView.text = resources.getString(R.string.label_chart_no_data)
+        } else chart.animateX(ANIMATION_DURATION)
+        chart.invalidate()
+    }
+
+    override fun onTimeRangeUpdated(start: Long, end: Long) {
+        if (mReportPeriodStart != start || mReportPeriodEnd != end) {
+            mReportPeriodStart = start
+            mReportPeriodEnd = end
+            chart.data = getData(mutableListOf(AccountType.INCOME, AccountType.EXPENSE))
+            chart.invalidate()
         }
     }
 
-    @Override
-    public void onValueSelected(Entry e, int dataSetIndex, Highlight h) {
-        if (e == null) return;
-        String label = mChart.getData().getXVals().get(e.getXIndex());
-        double value = e.getVal();
-        double sum = mChart.getData().getDataSetByIndex(dataSetIndex).getYValueSum();
-        mSelectedValueTextView.setText(String.format(SELECTED_VALUE_PATTERN, label, value, value / sum * 100));
+    override fun onGroupingUpdated(groupInterval: GroupInterval) {
+        if (mGroupInterval != groupInterval) {
+            mGroupInterval = groupInterval
+            chart.data = getData(mutableListOf(AccountType.INCOME, AccountType.EXPENSE))
+            chart.invalidate()
+        }
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        menu.findItem(R.id.menu_toggle_average_lines).isVisible = chartDataPresent
+        menu.findItem(R.id.menu_order_by_size).isVisible = false
+        menu.findItem(R.id.menu_toggle_labels).isVisible = false
+        menu.findItem(R.id.menu_percentage_mode).isVisible = false
+        menu.findItem(R.id.menu_group_other_slice).isVisible = false
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.isCheckable) item.isChecked = !item.isChecked
+        return when (item.itemId) {
+            R.id.menu_toggle_legend -> {
+                chart.legend.isEnabled = !chart.legend.isEnabled
+                chart.invalidate()
+                true
+            }
+            R.id.menu_toggle_average_lines -> {
+                if (chart.axisLeft.limitLines.isEmpty()) {
+                    for (dataSet in chart.data.dataSets) {
+                        val line = LimitLine(
+                            dataSet.yValueSum / dataSet.entryCount,
+                            dataSet.label
+                        )
+                        line.enableDashedLine(10f, 5f, 0f)
+                        line.lineColor = dataSet.color
+                        chart.axisLeft.addLimitLine(line)
+                    }
+                } else chart.axisLeft.removeAllLimitLines()
+                chart.invalidate()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    override fun onValueSelected(entry: Entry?, dataSetIndex: Int, highlight: Highlight?) {
+        entry ?: return
+        val label = chart.data.xVals[entry.xIndex]
+        val value = entry.`val`.toDouble()
+        val sum = chart.data.getDataSetByIndex(dataSetIndex).yValueSum.toDouble()
+        mSelectedValueTextView.text = String.format(
+            SELECTED_VALUE_PATTERN,
+            label,
+            value,
+            value / sum * 100
+        )
+    }
+
+    companion object {
+        private const val X_AXIS_PATTERN = "MMM YY"
+        private const val ANIMATION_DURATION = 3000
+        private const val NO_DATA_BAR_COUNTS = 5
+        private val COLORS = intArrayOf(
+            Color.parseColor("#68F1AF"), Color.parseColor("#cc1f09"),
+            Color.parseColor("#EE8600"), Color.parseColor("#1469EB"),
+            Color.parseColor("#B304AD")
+        )
+        private val FILL_COLORS = intArrayOf(
+            Color.parseColor("#008000"), Color.parseColor("#FF0000"),
+            Color.parseColor("#BE6B00"), Color.parseColor("#0065FF"),
+            Color.parseColor("#8F038A")
+        )
+    }
 }

@@ -1,174 +1,146 @@
 /*
  * Copyright (c) 2015 Ngewi Fet <ngewif@gmail.com>
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
-package org.gnucash.android.ui.report.sheet;
+package org.gnucash.android.ui.report.sheet
 
-import android.database.Cursor;
-import android.graphics.Typeface;
-import android.os.Bundle;
-import androidx.annotation.Nullable;
-import android.text.TextUtils;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TableLayout;
-import android.widget.TextView;
+import android.graphics.Typeface
+import android.os.Bundle
+import android.text.TextUtils
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.View
+import android.view.ViewGroup
+import android.widget.TableLayout
+import android.widget.TextView
+import org.gnucash.android.R
+import org.gnucash.android.model.data.AccountType
+import org.gnucash.android.model.data.Money
+import org.gnucash.android.model.db.DatabaseSchema
+import org.gnucash.android.model.db.adapter.AccountsDbAdapter
+import org.gnucash.android.ui.report.BaseReportFragment
+import org.gnucash.android.ui.report.ReportType
+import org.gnucash.android.ui.transaction.TransactionsActivity
 
-import org.gnucash.android.R;
-import org.gnucash.android.model.db.DatabaseSchema;
-import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
-import org.gnucash.android.model.data.AccountType;
-import org.gnucash.android.model.data.Money;
-import org.gnucash.android.ui.report.BaseReportFragment;
-import org.gnucash.android.ui.report.ReportType;
-import org.gnucash.android.ui.transaction.TransactionsActivity;
+/** Balance-sheet report fragment. */
+class BalanceSheetFragment : BaseReportFragment() {
+    private lateinit var assetsTableLayout: TableLayout
+    private lateinit var liabilitiesTableLayout: TableLayout
+    private lateinit var equityTableLayout: TableLayout
+    private lateinit var netWorth: TextView
+    private val accountsDbAdapter = AccountsDbAdapter.getInstance()
+    private lateinit var assetsBalance: Money
+    private lateinit var liabilitiesBalance: Money
+    private lateinit var assetAccountTypes: List<AccountType>
+    private lateinit var liabilityAccountTypes: List<AccountType>
+    private lateinit var equityAccountTypes: List<AccountType>
 
-import java.util.ArrayList;
-import java.util.List;
+    override val layoutResource = R.layout.fragment_text_report
+    override val title = R.string.title_balance_sheet_report
+    override val reportType = ReportType.TEXT
 
-/**
- * Balance sheet report fragment
- * @author Ngewi Fet <ngewif@gmail.com>
- */
-public class BalanceSheetFragment extends BaseReportFragment {
+    override fun requiresAccountTypeOptions() = false
 
-    private TableLayout mAssetsTableLayout;
-    private TableLayout mLiabilitiesTableLayout;
-    private TableLayout mEquityTableLayout;
-    private TextView mNetWorth;
+    override fun requiresTimeRangeOptions() = false
 
-    AccountsDbAdapter mAccountsDbAdapter = AccountsDbAdapter.getInstance();
-
-    private Money mAssetsBalance;
-    private Money mLiabilitiesBalance;
-    private List<AccountType> mAssetAccountTypes;
-    private List<AccountType> mLiabilityAccountTypes;
-    private List<AccountType> mEquityAccountTypes;
-
-    @Nullable
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = super.onCreateView(inflater, container, savedInstanceState);
-        mAssetsTableLayout = view.findViewById(R.id.table_assets);
-        mLiabilitiesTableLayout = view.findViewById(R.id.table_liabilities);
-        mEquityTableLayout = view.findViewById(R.id.table_equity);
-        mNetWorth = view.findViewById(R.id.total_liability_and_equity);
-        return view;
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        val view = super.onCreateView(inflater, container, savedInstanceState)
+        assetsTableLayout = view.findViewById(R.id.table_assets)
+        liabilitiesTableLayout = view.findViewById(R.id.table_liabilities)
+        equityTableLayout = view.findViewById(R.id.table_equity)
+        netWorth = view.findViewById(R.id.total_liability_and_equity)
+        return view
     }
 
-    @Override
-    public int getLayoutResource() {
-        return R.layout.fragment_text_report;
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        assetAccountTypes = listOf(AccountType.ASSET, AccountType.CASH, AccountType.BANK)
+        liabilityAccountTypes = listOf(AccountType.LIABILITY, AccountType.CREDIT)
+        equityAccountTypes = listOf(AccountType.EQUITY)
     }
 
-    @Override
-    public int getTitle() {
-        return R.string.title_balance_sheet_report;
+    override fun generateReport() {
+        assetsBalance = accountsDbAdapter.getAccountBalance(
+            assetAccountTypes,
+            -1,
+            System.currentTimeMillis()
+        )
+        liabilitiesBalance = accountsDbAdapter.getAccountBalance(
+            liabilityAccountTypes,
+            -1,
+            System.currentTimeMillis()
+        )
     }
 
-    @Override
-    public ReportType getReportType() {
-        return ReportType.TEXT;
+    override fun displayReport() {
+        loadAccountViews(assetAccountTypes, assetsTableLayout)
+        loadAccountViews(liabilityAccountTypes, liabilitiesTableLayout)
+        loadAccountViews(equityAccountTypes, equityTableLayout)
+        TransactionsActivity.displayBalance(
+            netWorth,
+            assetsBalance.subtract(liabilitiesBalance)
+        )
     }
 
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        mAssetAccountTypes = new ArrayList<>();
-        mAssetAccountTypes.add(AccountType.ASSET);
-        mAssetAccountTypes.add(AccountType.CASH);
-        mAssetAccountTypes.add(AccountType.BANK);
-
-        mLiabilityAccountTypes = new ArrayList<>();
-        mLiabilityAccountTypes.add(AccountType.LIABILITY);
-        mLiabilityAccountTypes.add(AccountType.CREDIT);
-
-        mEquityAccountTypes = new ArrayList<>();
-        mEquityAccountTypes.add(AccountType.EQUITY);
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        super.onPrepareOptionsMenu(menu)
+        menu.findItem(R.id.menu_group_reports_by).isVisible = false
     }
 
-    @Override
-    public boolean requiresAccountTypeOptions() {
-        return false;
-    }
+    /** Loads the individual account rows and a total row into [tableLayout]. */
+    private fun loadAccountViews(accountTypes: List<AccountType>, tableLayout: TableLayout) {
+        val inflater = LayoutInflater.from(requireActivity())
+        val cursor = accountsDbAdapter.fetchAccounts(
+            DatabaseSchema.AccountEntry.COLUMN_TYPE + " IN ( '" +
+                TextUtils.join("' , '", accountTypes) + "' ) AND " +
+                DatabaseSchema.AccountEntry.COLUMN_PLACEHOLDER + " = 0",
+            null,
+            DatabaseSchema.AccountEntry.COLUMN_FULL_NAME + " ASC"
+        )
 
-    @Override
-    public boolean requiresTimeRangeOptions() {
-        return false;
-    }
-
-    @Override
-    protected void generateReport() {
-        mAssetsBalance = mAccountsDbAdapter.getAccountBalance(mAssetAccountTypes, -1, System.currentTimeMillis());
-        mLiabilitiesBalance = mAccountsDbAdapter.getAccountBalance(mLiabilityAccountTypes, -1, System.currentTimeMillis());
-    }
-
-    @Override
-    protected void displayReport() {
-        loadAccountViews(mAssetAccountTypes, mAssetsTableLayout);
-        loadAccountViews(mLiabilityAccountTypes, mLiabilitiesTableLayout);
-        loadAccountViews(mEquityAccountTypes, mEquityTableLayout);
-
-        TransactionsActivity.displayBalance(mNetWorth, mAssetsBalance.subtract(mLiabilitiesBalance));
-    }
-
-    @Override
-    public void onPrepareOptionsMenu(Menu menu) {
-        super.onPrepareOptionsMenu(menu);
-        menu.findItem(R.id.menu_group_reports_by).setVisible(false);
-    }
-
-    /**
-     * Loads rows for the individual accounts and adds them to the report
-     * @param accountTypes Account types for which to load balances
-     * @param tableLayout Table layout into which to load the rows
-     */
-    private void loadAccountViews(List<AccountType> accountTypes, TableLayout tableLayout){
-        LayoutInflater inflater = LayoutInflater.from(getActivity());
-
-        Cursor cursor = mAccountsDbAdapter.fetchAccounts(DatabaseSchema.AccountEntry.COLUMN_TYPE
-                        + " IN ( '" + TextUtils.join("' , '", accountTypes) + "' ) AND "
-                        + DatabaseSchema.AccountEntry.COLUMN_PLACEHOLDER + " = 0",
-                null, DatabaseSchema.AccountEntry.COLUMN_FULL_NAME + " ASC");
-
-        while (cursor.moveToNext()){
-            String accountUID = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseSchema.AccountEntry.COLUMN_UID));
-            String name = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseSchema.AccountEntry.COLUMN_NAME));
-            Money balance = mAccountsDbAdapter.getAccountBalance(accountUID);
-            View view = inflater.inflate(R.layout.row_balance_sheet, tableLayout, false);
-            ((TextView)view.findViewById(R.id.account_name)).setText(name);
-            TextView balanceTextView = (TextView) view.findViewById(R.id.account_balance);
-            TransactionsActivity.displayBalance(balanceTextView, balance);
-            tableLayout.addView(view);
+        while (cursor.moveToNext()) {
+            val accountUID = cursor.getString(
+                cursor.getColumnIndexOrThrow(DatabaseSchema.AccountEntry.COLUMN_UID)
+            )
+            val name = cursor.getString(
+                cursor.getColumnIndexOrThrow(DatabaseSchema.AccountEntry.COLUMN_NAME)
+            )
+            val row = inflater.inflate(R.layout.row_balance_sheet, tableLayout, false)
+            row.findViewById<TextView>(R.id.account_name).text = name
+            val balanceView = row.findViewById<TextView>(R.id.account_balance)
+            TransactionsActivity.displayBalance(
+                balanceView,
+                accountsDbAdapter.getAccountBalance(accountUID)
+            )
+            tableLayout.addView(row)
         }
 
-        View totalView = inflater.inflate(R.layout.row_balance_sheet, tableLayout, false);
-        TableLayout.LayoutParams layoutParams = (TableLayout.LayoutParams) totalView.getLayoutParams();
-        layoutParams.setMargins(layoutParams.leftMargin, 20, layoutParams.rightMargin, layoutParams.bottomMargin);
-        totalView.setLayoutParams(layoutParams);
+        val totalView = inflater.inflate(R.layout.row_balance_sheet, tableLayout, false)
+        val layoutParams = totalView.layoutParams as TableLayout.LayoutParams
+        layoutParams.setMargins(
+            layoutParams.leftMargin,
+            20,
+            layoutParams.rightMargin,
+            layoutParams.bottomMargin
+        )
+        totalView.layoutParams = layoutParams
 
-        TextView accountName = (TextView) totalView.findViewById(R.id.account_name);
-        accountName.setTextSize(16);
-        accountName.setText(R.string.label_balance_sheet_total);
-        TextView accountBalance = (TextView) totalView.findViewById(R.id.account_balance);
-        accountBalance.setTextSize(16);
-        accountBalance.setTypeface(null, Typeface.BOLD);
-        TransactionsActivity.displayBalance(accountBalance, mAccountsDbAdapter.getAccountBalance(accountTypes, -1, System.currentTimeMillis()));
-
-        tableLayout.addView(totalView);
+        totalView.findViewById<TextView>(R.id.account_name).apply {
+            textSize = 16f
+            setText(R.string.label_balance_sheet_total)
+        }
+        val accountBalance = totalView.findViewById<TextView>(R.id.account_balance).apply {
+            textSize = 16f
+            setTypeface(null, Typeface.BOLD)
+        }
+        TransactionsActivity.displayBalance(
+            accountBalance,
+            accountsDbAdapter.getAccountBalance(accountTypes, -1, System.currentTimeMillis())
+        )
+        tableLayout.addView(totalView)
     }
-
 }

@@ -244,7 +244,9 @@ class DeleteAccountDialogFragment : DialogFragment() {
                 //now kill them all!!
                 accountsDbAdapter.recursiveDeleteAccount(accountsDbAdapter.getID(mOriginAccountUID!!))
 
-                WidgetConfigurationActivity.updateAllWidgets(getActivity())
+                activity?.let { act ->
+                    WidgetConfigurationActivity.updateAllWidgets(act.applicationContext)
+                }
                 (getTargetFragment() as Refreshable).refresh()
                 dismiss()
             }

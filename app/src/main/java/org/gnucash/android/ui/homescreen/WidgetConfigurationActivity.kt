@@ -6,349 +6,298 @@
  * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
+package org.gnucash.android.ui.homescreen
 
-package org.gnucash.android.ui.homescreen;
+import android.app.Activity
+import android.app.PendingIntent
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.database.sqlite.SQLiteDatabase
+import android.os.Bundle
+import android.util.Log
+import android.view.View
+import android.widget.AdapterView
+import android.widget.Button
+import android.widget.CheckBox
+import android.widget.RemoteViews
+import android.widget.Spinner
+import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.cursoradapter.widget.SimpleCursorAdapter
+import androidx.preference.PreferenceManager
+import org.gnucash.android.R
+import org.gnucash.android.model.data.Account
+import org.gnucash.android.model.db.BookDbHelper
+import org.gnucash.android.model.db.DatabaseHelper
+import org.gnucash.android.model.db.DatabaseSchema
+import org.gnucash.android.model.db.adapter.AccountsDbAdapter
+import org.gnucash.android.model.db.adapter.BooksDbAdapter
+import org.gnucash.android.receivers.TransactionAppWidgetProvider
+import org.gnucash.android.ui.account.AccountsActivity
+import org.gnucash.android.ui.common.FormActivity
+import org.gnucash.android.ui.common.UxArgument
+import org.gnucash.android.ui.settings.PreferenceActivity
+import org.gnucash.android.ui.transaction.TransactionsActivity
+import org.gnucash.android.util.QualifiedAccountNameCursorAdapter
+import java.util.Locale
 
-import android.app.Activity;
-import android.app.PendingIntent;
-import android.appwidget.AppWidgetManager;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.os.Bundle;
-import androidx.core.content.ContextCompat;
-import androidx.cursoradapter.widget.SimpleCursorAdapter;
-import androidx.preference.PreferenceManager;
-import android.util.Log;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.RemoteViews;
-import android.widget.Spinner;
-import android.widget.Toast;
+/** Activity for choosing which account to display on a home-screen widget. */
+class WidgetConfigurationActivity : Activity() {
+    private lateinit var accountsDbAdapter: AccountsDbAdapter
+    private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
 
-import org.gnucash.android.R;
-import org.gnucash.android.model.db.BookDbHelper;
-import org.gnucash.android.model.db.DatabaseHelper;
-import org.gnucash.android.model.db.DatabaseSchema;
-import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
-import org.gnucash.android.model.db.adapter.BooksDbAdapter;
-import org.gnucash.android.model.data.Account;
-import org.gnucash.android.model.data.Book;
-import org.gnucash.android.model.data.Money;
-import org.gnucash.android.receivers.TransactionAppWidgetProvider;
-import org.gnucash.android.ui.account.AccountsActivity;
-import org.gnucash.android.ui.common.FormActivity;
-import org.gnucash.android.ui.common.UxArgument;
-import org.gnucash.android.ui.settings.PreferenceActivity;
-import org.gnucash.android.ui.transaction.TransactionsActivity;
-import org.gnucash.android.util.QualifiedAccountNameCursorAdapter;
+    private lateinit var accountsSpinner: Spinner
+    private lateinit var booksSpinner: Spinner
+    private lateinit var hideAccountBalance: CheckBox
+    private lateinit var okButton: Button
+    private lateinit var cancelButton: Button
+    private lateinit var accountsCursorAdapter: SimpleCursorAdapter
 
-import java.util.Locale;
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.widget_configuration)
+        setResult(RESULT_CANCELED)
 
-/**
- * Activity for configuration which account to display on a widget.
- * The activity is opened each time a widget is added to the homescreen
- * @author Ngewi Fet <ngewif@gmail.com>
- */
-public class WidgetConfigurationActivity extends Activity {
-	private AccountsDbAdapter mAccountsDbAdapter;
-    private int mAppWidgetId;
-	
-	private Spinner mAccountsSpinner;
-	private Spinner mBooksSpinner;
-	private CheckBox mHideAccountBalance;
-	private Button mOkButton;
-	private Button mCancelButton;
+        accountsSpinner = findViewById(R.id.input_accounts_spinner)
+        booksSpinner = findViewById(R.id.input_books_spinner)
+        hideAccountBalance = findViewById(R.id.input_hide_account_balance)
+        okButton = findViewById(R.id.btn_save)
+        cancelButton = findViewById(R.id.btn_cancel)
 
+        val booksDbAdapter = BooksDbAdapter.getInstance()
+        val booksCursor = booksDbAdapter.fetchAllRecords()
+        val currentBookUID = booksDbAdapter.getActiveBookUID()
+        var position = 0
+        while (booksCursor.moveToNext()) {
+            val bookUID = booksCursor.getString(
+                booksCursor.getColumnIndexOrThrow(DatabaseSchema.BookEntry.COLUMN_UID)
+            )
+            if (bookUID == currentBookUID) break
+            position++
+        }
 
-	private SimpleCursorAdapter mAccountsCursorAdapter;
+        val booksCursorAdapter = SimpleCursorAdapter(
+            this,
+            android.R.layout.simple_spinner_item,
+            booksCursor,
+            arrayOf(DatabaseSchema.BookEntry.COLUMN_DISPLAY_NAME),
+            intArrayOf(android.R.id.text1),
+            0
+        )
+        booksCursorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        booksSpinner.adapter = booksCursorAdapter
+        booksSpinner.setSelection(position)
 
+        accountsDbAdapter = AccountsDbAdapter.getInstance()
+        val accountsCursor = accountsDbAdapter.fetchAllRecordsOrderedByFullName()
+        if (accountsCursor.count <= 0) {
+            Toast.makeText(this, R.string.error_no_accounts, Toast.LENGTH_LONG).show()
+            finish()
+        }
 
-	@Override
-	public void onCreate(Bundle savedInstanceState) {		
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.widget_configuration);
-		setResult(RESULT_CANCELED);
+        accountsCursorAdapter = QualifiedAccountNameCursorAdapter(this, accountsCursor)
+        accountsCursorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        accountsSpinner.adapter = accountsCursorAdapter
 
-		mAccountsSpinner = findViewById(R.id.input_accounts_spinner);
-		mBooksSpinner = findViewById(R.id.input_books_spinner);
-		mHideAccountBalance = findViewById(R.id.input_hide_account_balance);
-		mOkButton = findViewById(R.id.btn_save);
-		mCancelButton = findViewById(R.id.btn_cancel);
+        val passcodeEnabled = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+            .getBoolean(UxArgument.ENABLED_PASSCODE, false)
+        hideAccountBalance.isChecked = passcodeEnabled
+        bindListeners()
+    }
 
-		BooksDbAdapter booksDbAdapter = BooksDbAdapter.getInstance();
-		Cursor booksCursor = booksDbAdapter.fetchAllRecords();
-		String currentBookUID = booksDbAdapter.getActiveBookUID();
+    private fun bindListeners() {
+        booksSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val book = BooksDbAdapter.getInstance().getRecord(id)
+                val database: SQLiteDatabase =
+                    DatabaseHelper(this@WidgetConfigurationActivity, book.getUID()).writableDatabase
+                accountsDbAdapter = AccountsDbAdapter(database)
+                accountsCursorAdapter.swapCursor(accountsDbAdapter.fetchAllRecordsOrderedByFullName())
+                accountsCursorAdapter.notifyDataSetChanged()
+            }
 
-		//determine the position of the currently active book in the cursor
-		int position = 0;
-		while (booksCursor.moveToNext()){
-			String bookUID = booksCursor.getString(booksCursor.getColumnIndexOrThrow(DatabaseSchema.BookEntry.COLUMN_UID));
-			if (bookUID.equals(currentBookUID))
-				break;
-			++position;
-		}
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+        }
 
-		SimpleCursorAdapter booksCursorAdapter = new SimpleCursorAdapter(this,
-				android.R.layout.simple_spinner_item, booksCursor,
-				new String[]{DatabaseSchema.BookEntry.COLUMN_DISPLAY_NAME},
-				new int[]{android.R.id.text1}, 0);
-		booksCursorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		mBooksSpinner.setAdapter(booksCursorAdapter);
-		mBooksSpinner.setSelection(position);
+        okButton.setOnClickListener {
+            appWidgetId = intent.extras?.getInt(
+                AppWidgetManager.EXTRA_APPWIDGET_ID,
+                AppWidgetManager.INVALID_APPWIDGET_ID
+            ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
 
-		mAccountsDbAdapter = AccountsDbAdapter.getInstance();
-		Cursor cursor = mAccountsDbAdapter.fetchAllRecordsOrderedByFullName();
-		
-		if (cursor.getCount() <= 0){
-			Toast.makeText(this, R.string.error_no_accounts, Toast.LENGTH_LONG).show();
-			finish();
-		}
+            if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
+                finish()
+                return@setOnClickListener
+            }
 
-		mAccountsCursorAdapter = new QualifiedAccountNameCursorAdapter(this, cursor);
-		//without this line, the app crashes when a user tries to select an account
-		mAccountsCursorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		mAccountsSpinner.setAdapter(mAccountsCursorAdapter);
+            val bookUID = BooksDbAdapter.getInstance().getUID(booksSpinner.selectedItemId)
+            val accountUID = accountsDbAdapter.getUID(accountsSpinner.selectedItemId)
+            configureWidget(this, appWidgetId, bookUID, accountUID, hideAccountBalance.isChecked)
+            updateWidget(this, appWidgetId)
 
-		boolean passcodeEnabled = PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
-				.getBoolean(UxArgument.ENABLED_PASSCODE, false);
-		mHideAccountBalance.setChecked(passcodeEnabled);
+            setResult(
+                RESULT_OK,
+                Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+            )
+            finish()
+        }
+        cancelButton.setOnClickListener { finish() }
+    }
 
-		bindListeners();
-	}
+    companion object {
+        private const val TAG = "WidgetConfiguration"
 
-	/**
-	 * Sets click listeners for the buttons in the dialog
-	 */
-	private void bindListeners() {
-		mBooksSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-			@Override
-			public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-				Book book = BooksDbAdapter.getInstance().getRecord(id);
-				SQLiteDatabase db = new DatabaseHelper(WidgetConfigurationActivity.this, book.getUID()).getWritableDatabase();
-				mAccountsDbAdapter = new AccountsDbAdapter(db);
+        @JvmStatic
+        fun configureWidget(
+            context: Context,
+            appWidgetId: Int,
+            bookUID: String,
+            accountUID: String,
+            hideAccountBalance: Boolean
+        ) {
+            context.getSharedPreferences("widget:$appWidgetId", Context.MODE_PRIVATE).edit()
+                .putString(UxArgument.BOOK_UID, bookUID)
+                .putString(UxArgument.SELECTED_ACCOUNT_UID, accountUID)
+                .putBoolean(UxArgument.HIDE_ACCOUNT_BALANCE_IN_WIDGET, hideAccountBalance)
+                .apply()
+        }
 
-				Cursor cursor = mAccountsDbAdapter.fetchAllRecordsOrderedByFullName();
-				mAccountsCursorAdapter.swapCursor(cursor);
-				mAccountsCursorAdapter.notifyDataSetChanged();
-			}
+        @JvmStatic
+        fun removeWidgetConfiguration(context: Context, appWidgetId: Int) {
+            context.getSharedPreferences("widget:$appWidgetId", Context.MODE_PRIVATE).edit()
+                .clear()
+                .apply()
+        }
 
-			@Override
-			public void onNothingSelected(AdapterView<?> parent) {
-				//nothing to see here, move along
-			}
-		});
+        private fun loadOldPreferences(context: Context, appWidgetId: Int) {
+            val preferences = PreferenceActivity.getActiveBookSharedPreferences()
+            val accountUID = preferences.getString(UxArgument.SELECTED_ACCOUNT_UID + appWidgetId, null)
+                ?: return
+            configureWidget(
+                context,
+                appWidgetId,
+                BooksDbAdapter.getInstance().getActiveBookUID(),
+                accountUID,
+                preferences.getBoolean(UxArgument.HIDE_ACCOUNT_BALANCE_IN_WIDGET + appWidgetId, false)
+            )
+            preferences.edit()
+                .remove(UxArgument.SELECTED_ACCOUNT_UID + appWidgetId)
+                .remove(UxArgument.HIDE_ACCOUNT_BALANCE_IN_WIDGET + appWidgetId)
+                .apply()
+        }
 
-		mOkButton.setOnClickListener(new View.OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				Intent intent = getIntent();
-				Bundle extras = intent.getExtras();
-				if (extras != null) {
-				    mAppWidgetId = extras.getInt(
-				            AppWidgetManager.EXTRA_APPWIDGET_ID, 
-				            AppWidgetManager.INVALID_APPWIDGET_ID);
-				}
-				
-				if (mAppWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID){
-					finish();
-					return;
-				}
+        @JvmStatic
+        fun updateWidget(context: Context, appWidgetId: Int) {
+            Log.i(TAG, "Updating widget: $appWidgetId")
+            val appWidgetManager = AppWidgetManager.getInstance(context)
+            loadOldPreferences(context, appWidgetId)
 
-				String bookUID = BooksDbAdapter.getInstance().getUID(mBooksSpinner.getSelectedItemId());
-				String accountUID = mAccountsDbAdapter.getUID(mAccountsSpinner.getSelectedItemId());
-				boolean hideAccountBalance = mHideAccountBalance.isChecked();
-				
-				configureWidget(WidgetConfigurationActivity.this, mAppWidgetId, bookUID, accountUID, hideAccountBalance);
-				updateWidget(WidgetConfigurationActivity.this, mAppWidgetId);
-						
-				Intent resultValue = new Intent();
-				resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
-				setResult(RESULT_OK, resultValue);
-				finish();		
-			}
-		});
-		
-		mCancelButton.setOnClickListener(new View.OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				finish();
-			}
-		});
-	}
+            val preferences = context.getSharedPreferences("widget:$appWidgetId", Context.MODE_PRIVATE)
+            val bookUID = preferences.getString(UxArgument.BOOK_UID, null) ?: return
+            val accountUID = preferences.getString(UxArgument.SELECTED_ACCOUNT_UID, null) ?: return
+            val hideAccountBalance =
+                preferences.getBoolean(UxArgument.HIDE_ACCOUNT_BALANCE_IN_WIDGET, false)
+            val accountsDbAdapter = AccountsDbAdapter(BookDbHelper.getDatabase(bookUID))
 
-	/**
-	 * Configure a given widget with the given parameters.
-	 * @param context The current context
-	 * @param appWidgetId ID of the widget to configure
-	 * @param bookUID UID of the book for this widget
-	 * @param accountUID UID of the account for this widget
-	 * @param hideAccountBalance <code>true</code> if the account balance should be hidden,
-	 *                           <code>false</code> otherwise
-     */
-	public static void configureWidget(final Context context, int appWidgetId, String bookUID, String accountUID, boolean hideAccountBalance) {
-		context.getSharedPreferences("widget:" + appWidgetId, MODE_PRIVATE).edit()
-				.putString(UxArgument.BOOK_UID, bookUID)
-				.putString(UxArgument.SELECTED_ACCOUNT_UID, accountUID)
-				.putBoolean(UxArgument.HIDE_ACCOUNT_BALANCE_IN_WIDGET, hideAccountBalance)
-				.apply();
-	}
+            val account: Account = try {
+                accountsDbAdapter.getRecord(accountUID)
+            } catch (_: IllegalArgumentException) {
+                showDeletedAccount(context, appWidgetManager, appWidgetId)
+                return
+            }
 
-	/**
-	 * Remove the configuration for a widget. Primarily this should be called when a widget is
-	 * destroyed.
-	 * @param context The current context
-	 * @param appWidgetId ID of the widget whose configuration should be removed
-     */
-	public static void removeWidgetConfiguration(final Context context, int appWidgetId) {
-		context.getSharedPreferences("widget:" + appWidgetId, MODE_PRIVATE).edit()
-				.clear()
-				.apply();
-	}
+            val views = RemoteViews(context.packageName, R.layout.widget_4x1)
+            views.setTextViewText(R.id.account_name, account.getName())
+            val balance = accountsDbAdapter.getAccountBalance(accountUID, -1, System.currentTimeMillis())
+            if (hideAccountBalance) {
+                views.setViewVisibility(R.id.transactions_summary, View.GONE)
+            } else {
+                views.setTextViewText(
+                    R.id.transactions_summary,
+                    balance.formattedString(Locale.getDefault())
+                )
+                val color = if (balance.isNegative) R.color.debit_red else R.color.credit_green
+                views.setTextColor(
+                    R.id.transactions_summary,
+                    ContextCompat.getColor(context, color)
+                )
+            }
 
-	/**
-	 * Load obsolete preferences for a widget, if they exist, and save them using the new widget
-	 * configuration format.
-	 * @param context The current context
-	 * @param appWidgetId ID of the widget whose configuration to load/save
-     */
-	private static void loadOldPreferences(Context context, int appWidgetId) {
-		SharedPreferences preferences = PreferenceActivity.getActiveBookSharedPreferences();
-		String accountUID = preferences.getString(UxArgument.SELECTED_ACCOUNT_UID + appWidgetId, null);
-		if (accountUID != null) {
-			String bookUID = BooksDbAdapter.getInstance().getActiveBookUID();
-			boolean hideAccountBalance = preferences.getBoolean(UxArgument.HIDE_ACCOUNT_BALANCE_IN_WIDGET + appWidgetId, false);
-			configureWidget(context, appWidgetId, bookUID, accountUID, hideAccountBalance);
-			preferences.edit()
-					.remove(UxArgument.SELECTED_ACCOUNT_UID + appWidgetId)
-					.remove(UxArgument.HIDE_ACCOUNT_BALANCE_IN_WIDGET + appWidgetId)
-					.apply();
-		}
-	}
+            val accountIntent = Intent(context, TransactionsActivity::class.java).apply {
+                action = Intent.ACTION_VIEW
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                putExtra(UxArgument.SELECTED_ACCOUNT_UID, accountUID)
+                putExtra(UxArgument.BOOK_UID, bookUID)
+            }
+            val accountPendingIntent = PendingIntent.getActivity(
+                context,
+                appWidgetId,
+                accountIntent,
+                PendingIntent.FLAG_IMMUTABLE
+            )
+            views.setOnClickPendingIntent(R.id.widget_layout, accountPendingIntent)
 
-	/**
-	 * Updates the widget with id <code>appWidgetId</code> with information from the 
-	 * account with record ID <code>accountId</code>
-     * If the account has been deleted, then a notice is posted in the widget
-	 * @param appWidgetId ID of the widget to be updated
-	 */
-	public static void updateWidget(final Context context, int appWidgetId) {
-		Log.i("WidgetConfiguration", "Updating widget: " + appWidgetId);
-		AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+            if (accountsDbAdapter.isPlaceholderAccount(accountUID)) {
+                views.setOnClickPendingIntent(R.id.btn_view_account, accountPendingIntent)
+                views.setViewVisibility(R.id.btn_new_transaction, View.GONE)
+            } else {
+                val transactionIntent = Intent(context, FormActivity::class.java).apply {
+                    action = Intent.ACTION_INSERT_OR_EDIT
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    putExtra(UxArgument.FORM_TYPE, FormActivity.FormType.TRANSACTION.name)
+                    putExtra(UxArgument.BOOK_UID, bookUID)
+                    putExtra(UxArgument.SELECTED_ACCOUNT_UID, accountUID)
+                }
+                val transactionPendingIntent = PendingIntent.getActivity(
+                    context,
+                    appWidgetId,
+                    transactionIntent,
+                    PendingIntent.FLAG_IMMUTABLE
+                )
+                views.setOnClickPendingIntent(R.id.btn_new_transaction, transactionPendingIntent)
+                views.setViewVisibility(R.id.btn_view_account, View.GONE)
+            }
+            appWidgetManager.updateAppWidget(appWidgetId, views)
+        }
 
-		loadOldPreferences(context, appWidgetId);
+        private fun showDeletedAccount(
+            context: Context,
+            appWidgetManager: AppWidgetManager,
+            appWidgetId: Int
+        ) {
+            Log.i(TAG, "Account not found, resetting widget $appWidgetId")
+            val views = RemoteViews(context.packageName, R.layout.widget_4x1)
+            views.setTextViewText(
+                R.id.account_name,
+                context.getString(R.string.toast_account_deleted)
+            )
+            views.setTextViewText(R.id.transactions_summary, "")
+            val pendingIntent = PendingIntent.getActivity(
+                context,
+                0,
+                Intent(context, AccountsActivity::class.java),
+                PendingIntent.FLAG_IMMUTABLE
+            )
+            views.setOnClickPendingIntent(R.id.widget_layout, pendingIntent)
+            views.setOnClickPendingIntent(R.id.btn_new_transaction, pendingIntent)
+            appWidgetManager.updateAppWidget(appWidgetId, views)
+            PreferenceActivity.getActiveBookSharedPreferences().edit()
+                .remove(UxArgument.SELECTED_ACCOUNT_UID + appWidgetId)
+                .apply()
+        }
 
-		SharedPreferences preferences = context.getSharedPreferences("widget:" + appWidgetId, MODE_PRIVATE);
-		String bookUID = preferences.getString(UxArgument.BOOK_UID, null);
-		String accountUID = preferences.getString(UxArgument.SELECTED_ACCOUNT_UID, null);
-		boolean hideAccountBalance = preferences.getBoolean(UxArgument.HIDE_ACCOUNT_BALANCE_IN_WIDGET, false);
-
-		if (bookUID == null || accountUID == null) {
-			return;
-		}
-
-		AccountsDbAdapter accountsDbAdapter = new AccountsDbAdapter(BookDbHelper.getDatabase(bookUID));
-
-		final Account account;
-        try {
-            account = accountsDbAdapter.getRecord(accountUID);
-        } catch (IllegalArgumentException e) {
-			Log.i("WidgetConfiguration", "Account not found, resetting widget " + appWidgetId);
-			//if account has been deleted, let the user know
-			RemoteViews views = new RemoteViews(context.getPackageName(),
-					R.layout.widget_4x1);
-			views.setTextViewText(R.id.account_name, context.getString(R.string.toast_account_deleted));
-			views.setTextViewText(R.id.transactions_summary, "");
-            //set it to simply open the app
-            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0,
-                    new Intent(context, AccountsActivity.class), PendingIntent.FLAG_IMMUTABLE);
-			views.setOnClickPendingIntent(R.id.widget_layout, pendingIntent);
-			views.setOnClickPendingIntent(R.id.btn_new_transaction, pendingIntent);
-			appWidgetManager.updateAppWidget(appWidgetId, views);
-			Editor editor = PreferenceActivity.getActiveBookSharedPreferences().edit(); //PreferenceManager.getDefaultSharedPreferences(context).edit();
-			editor.remove(UxArgument.SELECTED_ACCOUNT_UID + appWidgetId);
-			editor.apply();
-			return;
-		}
-		
-		final RemoteViews views = new RemoteViews(context.getPackageName(),
-				R.layout.widget_4x1);
-		views.setTextViewText(R.id.account_name, account.getName());
-
-		Money accountBalance = accountsDbAdapter.getAccountBalance(accountUID, -1, System.currentTimeMillis());
-
-		if (hideAccountBalance) {
-			views.setViewVisibility(R.id.transactions_summary, View.GONE);
-		} else {
-			views.setTextViewText(R.id.transactions_summary,
-					accountBalance.formattedString(Locale.getDefault()));
-			int color = accountBalance.isNegative() ? R.color.debit_red : R.color.credit_green;
-			views.setTextColor(R.id.transactions_summary, ContextCompat.getColor(context, color));
-		}
-
-
-		Intent accountViewIntent = new Intent(context, TransactionsActivity.class);
-		accountViewIntent.setAction(Intent.ACTION_VIEW);
-		accountViewIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-		accountViewIntent.putExtra(UxArgument.SELECTED_ACCOUNT_UID, accountUID);
-		accountViewIntent.putExtra(UxArgument.BOOK_UID, bookUID);
-		PendingIntent accountPendingIntent = PendingIntent
-				.getActivity(context, appWidgetId, accountViewIntent, PendingIntent.FLAG_IMMUTABLE);
-		views.setOnClickPendingIntent(R.id.widget_layout, accountPendingIntent);
-		
-		if (accountsDbAdapter.isPlaceholderAccount(accountUID)) {
-			views.setOnClickPendingIntent(R.id.btn_view_account, accountPendingIntent);
-			views.setViewVisibility(R.id.btn_new_transaction, View.GONE);
-		} else {
-			Intent newTransactionIntent = new Intent(context, FormActivity.class);
-			newTransactionIntent.setAction(Intent.ACTION_INSERT_OR_EDIT);
-			newTransactionIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-			newTransactionIntent.putExtra(UxArgument.FORM_TYPE, FormActivity.FormType.TRANSACTION.name());
-			newTransactionIntent.putExtra(UxArgument.BOOK_UID, bookUID);
-			newTransactionIntent.putExtra(UxArgument.SELECTED_ACCOUNT_UID, accountUID);
-			PendingIntent pendingIntent = PendingIntent
-					.getActivity(context, appWidgetId, newTransactionIntent, PendingIntent.FLAG_IMMUTABLE);
-			views.setOnClickPendingIntent(R.id.btn_new_transaction, pendingIntent);
-			views.setViewVisibility(R.id.btn_view_account, View.GONE);
-		}
-		
-		appWidgetManager.updateAppWidget(appWidgetId, views);
-	}
-
-	/**
-	 * Updates all widgets belonging to the application
-	 * @param context Application context
-	 */
-	public static void updateAllWidgets(final Context context){
-		Log.i("WidgetConfiguration", "Updating all widgets");
-		AppWidgetManager widgetManager = AppWidgetManager.getInstance(context);
-		ComponentName componentName = new ComponentName(context, TransactionAppWidgetProvider.class);
-		final int[] appWidgetIds = widgetManager.getAppWidgetIds(componentName);
-
-		//update widgets asynchronously so as not to block method which called the update
-		//inside the computation of the account balance
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				for (final int widgetId : appWidgetIds) {
-					updateWidget(context, widgetId);
-				}
-			}
-		}).start();
-	}
+        @JvmStatic
+        fun updateAllWidgets(context: Context) {
+            Log.i(TAG, "Updating all widgets")
+            val manager = AppWidgetManager.getInstance(context)
+            val component = ComponentName(context, TransactionAppWidgetProvider::class.java)
+            val widgetIds = manager.getAppWidgetIds(component)
+            Thread {
+                widgetIds.forEach { updateWidget(context, it) }
+            }.start()
+        }
+    }
 }

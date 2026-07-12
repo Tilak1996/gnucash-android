@@ -1,320 +1,246 @@
 /*
  * Copyright (c) 2014-2015 Oleksandr Tyshkovets <olexandr.tyshkovets@gmail.com>
  * Copyright (c) 2015 Ngewi Fet <ngewif@gmail.com>
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
+package org.gnucash.android.ui.report.piechart
 
-package org.gnucash.android.ui.report.piechart;
+import android.content.Context
+import android.graphics.Color
+import android.os.Bundle
+import android.preference.PreferenceManager
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
+import com.github.mikephil.charting.charts.PieChart
+import com.github.mikephil.charting.components.Legend.LegendForm
+import com.github.mikephil.charting.components.Legend.LegendPosition
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.PieData
+import com.github.mikephil.charting.data.PieDataSet
+import com.github.mikephil.charting.highlight.Highlight
+import org.gnucash.android.R
+import org.gnucash.android.model.data.Account
+import org.gnucash.android.model.db.adapter.AccountsDbAdapter
+import org.gnucash.android.ui.report.BaseReportFragment
+import org.gnucash.android.ui.report.ReportType
+import org.gnucash.android.ui.report.ReportsActivity
+import java.util.Collections
 
-import android.content.Context;
-import android.graphics.Color;
-import android.os.Bundle;
-import android.preference.PreferenceManager;
-import androidx.annotation.Nullable;
+/** Fragment used for drawing a pie chart. */
+class PieChartFragment : BaseReportFragment() {
+    private lateinit var chart: PieChart
+    private lateinit var accountsDbAdapter: AccountsDbAdapter
+    private var chartDataPresent = true
+    private var useAccountColor = true
+    private var groupSmallerSlices = true
 
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
+    override val title = R.string.title_pie_chart
+    override val reportType = ReportType.PIE_CHART
+    override val layoutResource = R.layout.fragment_pie_chart
 
-import com.github.mikephil.charting.charts.PieChart;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.PieData;
-import com.github.mikephil.charting.data.PieDataSet;
-import com.github.mikephil.charting.highlight.Highlight;
-
-import org.gnucash.android.R;
-import org.gnucash.android.model.db.adapter.AccountsDbAdapter;
-import org.gnucash.android.model.data.Account;
-import org.gnucash.android.ui.report.BaseReportFragment;
-import org.gnucash.android.ui.report.ReportType;
-import org.gnucash.android.ui.report.ReportsActivity;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import static com.github.mikephil.charting.components.Legend.LegendForm;
-import static com.github.mikephil.charting.components.Legend.LegendPosition;
-
-/**
- * Activity used for drawing a pie chart
- *
- * @author Oleksandr Tyshkovets <olexandr.tyshkovets@gmail.com>
- * @author Ngewi Fet <ngewif@gmail.com>
- */
-public class PieChartFragment extends BaseReportFragment {
-
-    public static final String TOTAL_VALUE_LABEL_PATTERN = "%s\n%.2f %s";
-    private static final int ANIMATION_DURATION = 1800;
-    public static final int CENTER_TEXT_SIZE = 18;
-    /**
-     * The space in degrees between the chart slices
-     */
-    public static final float SPACE_BETWEEN_SLICES = 2f;
-    /**
-     * All pie slices less than this threshold will be group in "other" slice. Using percents not absolute values.
-     */
-    private static final double GROUPING_SMALLER_SLICES_THRESHOLD = 5;
-
-    private PieChart mChart;
-
-    private AccountsDbAdapter mAccountsDbAdapter;
-
-    private boolean mChartDataPresent = true;
-
-    private boolean mUseAccountColor = true;
-
-    private boolean mGroupSmallerSlices = true;
-
-    @Nullable
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = super.onCreateView(inflater, container, savedInstanceState);
-        mChart = view.findViewById(R.id.pie_chart);
-        return view;
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        val view = super.onCreateView(inflater, container, savedInstanceState)
+        chart = view.findViewById(R.id.pie_chart)
+        return view
     }
 
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-        mUseAccountColor = PreferenceManager.getDefaultSharedPreferences(getActivity())
-                .getBoolean(getString(R.string.key_use_account_color), false);
-
-        mAccountsDbAdapter = AccountsDbAdapter.getInstance();
-
-
-        mChart.setCenterTextSize(CENTER_TEXT_SIZE);
-        mChart.setDescription("");
-        mChart.setOnChartValueSelectedListener(this);
-        mChart.getLegend().setForm(LegendForm.CIRCLE);
-        mChart.getLegend().setWordWrapEnabled(true);
-        mChart.getLegend().setPosition(LegendPosition.BELOW_CHART_CENTER);
-
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        useAccountColor = PreferenceManager.getDefaultSharedPreferences(requireActivity())
+            .getBoolean(getString(R.string.key_use_account_color), false)
+        accountsDbAdapter = AccountsDbAdapter.getInstance()
+        chart.setCenterTextSize(CENTER_TEXT_SIZE)
+        chart.setDescription("")
+        chart.setOnChartValueSelectedListener(this)
+        chart.legend.apply {
+            form = LegendForm.CIRCLE
+            isWordWrapEnabled = true
+            position = LegendPosition.BELOW_CHART_CENTER
+        }
     }
 
-    @Override
-    public int getTitle() {
-        return R.string.title_pie_chart;
-    }
-
-    @Override
-    public ReportType getReportType() {
-        return ReportType.PIE_CHART;
-    }
-
-    @Override
-    public int getLayoutResource() {
-        return R.layout.fragment_pie_chart;
-    }
-
-    @Override
-    protected void generateReport() {
-        PieData pieData = getData();
-        if (pieData != null && pieData.getYValCount() != 0) {
-            mChartDataPresent = true;
-            mChart.setData(mGroupSmallerSlices ? groupSmallerSlices(pieData, getActivity()) : pieData);
-            float sum = mChart.getData().getYValueSum();
-            String total = getResources().getString(R.string.label_chart_total);
-            String currencySymbol = mCommodity.getSymbol();
-            mChart.setCenterText(String.format(TOTAL_VALUE_LABEL_PATTERN, total, sum, currencySymbol));
+    override fun generateReport() {
+        val pieData = data
+        if (pieData.yValCount != 0) {
+            chartDataPresent = true
+            chart.data = if (groupSmallerSlices) groupSmallerSlices(pieData, requireContext()) else pieData
+            chart.centerText = String.format(
+                TOTAL_VALUE_LABEL_PATTERN,
+                resources.getString(R.string.label_chart_total),
+                chart.data.yValueSum,
+                mCommodity.getSymbol()
+            )
         } else {
-            mChartDataPresent = false;
-            mChart.setCenterText(getResources().getString(R.string.label_chart_no_data));
-            mChart.setData(getEmptyData());
+            chartDataPresent = false
+            chart.centerText = resources.getString(R.string.label_chart_no_data)
+            chart.data = emptyData
         }
     }
 
-    @Override
-    protected void displayReport() {
-        if (mChartDataPresent){
-            mChart.animateXY(ANIMATION_DURATION, ANIMATION_DURATION);
-        }
-
-        mSelectedValueTextView.setText(R.string.label_select_pie_slice_to_see_details);
-        mChart.setTouchEnabled(mChartDataPresent);
-        mChart.highlightValues(null);
-        mChart.invalidate();
+    override fun displayReport() {
+        if (chartDataPresent) chart.animateXY(ANIMATION_DURATION, ANIMATION_DURATION)
+        mSelectedValueTextView.setText(R.string.label_select_pie_slice_to_see_details)
+        chart.setTouchEnabled(chartDataPresent)
+        chart.highlightValues(null)
+        chart.invalidate()
     }
 
-    /**
-     * Returns {@code PieData} instance with data entries, colors and labels
-     * @return {@code PieData} instance
-     */
-    private PieData getData() {
-        PieDataSet dataSet = new PieDataSet(null, "");
-        List<String> labels = new ArrayList<>();
-        List<Integer> colors = new ArrayList<>();
-        for (Account account : mAccountsDbAdapter.getSimpleAccountList()) {
-            if (account.getAccountType() == mAccountType
-                    && !account.isPlaceholderAccount()
-                    && account.getCommodity().equals(mCommodity)) {
-
-                double balance = mAccountsDbAdapter.getAccountsBalance(Collections.singletonList(account.getUID()),
-                        mReportPeriodStart, mReportPeriodEnd).asDouble();
-                if (balance > 0) {
-                    dataSet.addEntry(new Entry((float) balance, dataSet.getEntryCount()));
-                    int color;
-                    if (mUseAccountColor) {
-                        color = (account.getColor() != Account.DEFAULT_COLOR)
-                                ? account.getColor()
-                                : ReportsActivity.COLORS[(dataSet.getEntryCount() - 1) % ReportsActivity.COLORS.length];
-                    } else {
-                        color = ReportsActivity.COLORS[(dataSet.getEntryCount() - 1) % ReportsActivity.COLORS.length];
+    private val data: PieData
+        get() {
+            val dataSet = PieDataSet(null, "")
+            val labels = mutableListOf<String>()
+            val colors = mutableListOf<Int>()
+            for (account in accountsDbAdapter.getSimpleAccountList()) {
+                if (account.getAccountType() == mAccountType &&
+                    !account.isPlaceholderAccount() && account.getCommodity() == mCommodity
+                ) {
+                    val balance = accountsDbAdapter.getAccountsBalance(
+                        Collections.singletonList(account.getUID()),
+                        mReportPeriodStart,
+                        mReportPeriodEnd
+                    ).asDouble()
+                    if (balance > 0) {
+                        dataSet.addEntry(Entry(balance.toFloat(), dataSet.entryCount))
+                        val fallback = ReportsActivity.COLORS[
+                            (dataSet.entryCount - 1) % ReportsActivity.COLORS.size
+                        ]
+                        colors.add(
+                            if (useAccountColor && account.getColor() != Account.DEFAULT_COLOR)
+                                account.getColor() else fallback
+                        )
+                        labels.add(account.getName())
                     }
-                    colors.add(color);
-                    labels.add(account.getName());
+                }
+            }
+            dataSet.colors = colors
+            dataSet.sliceSpace = SPACE_BETWEEN_SLICES
+            return PieData(labels, dataSet)
+        }
+
+    private val emptyData: PieData
+        get() {
+            val dataSet = PieDataSet(null, resources.getString(R.string.label_chart_no_data))
+            dataSet.addEntry(Entry(1f, 0))
+            dataSet.color = NO_DATA_COLOR
+            dataSet.setDrawValues(false)
+            return PieData(Collections.singletonList(""), dataSet)
+        }
+
+    private fun bubbleSort() {
+        val labels = chart.data.xVals
+        val values = chart.data.dataSet.yVals
+        val colors = chart.data.dataSet.colors
+        for (i in 0 until values.size - 1) {
+            for (j in 1 until values.size - i) {
+                if (values[j - 1].`val` > values[j].`val`) {
+                    val value = values[j - 1].`val`
+                    values[j - 1].`val` = values[j].`val`
+                    values[j].`val` = value
+
+                    val label = labels[j - 1]
+                    labels[j - 1] = labels[j]
+                    labels[j] = label
+
+                    val color = colors[j - 1]
+                    colors[j - 1] = colors[j]
+                    colors[j] = color
                 }
             }
         }
-        dataSet.setColors(colors);
-        dataSet.setSliceSpace(SPACE_BETWEEN_SLICES);
-        return new PieData(labels, dataSet);
+        chart.notifyDataSetChanged()
+        chart.highlightValues(null)
+        chart.invalidate()
     }
 
-
-    /**
-     * Returns a data object that represents situation when no user data available
-     * @return a {@code PieData} instance for situation when no user data available
-     */
-    private PieData getEmptyData() {
-        PieDataSet dataSet = new PieDataSet(null, getResources().getString(R.string.label_chart_no_data));
-        dataSet.addEntry(new Entry(1, 0));
-        dataSet.setColor(NO_DATA_COLOR);
-        dataSet.setDrawValues(false);
-        return new PieData(Collections.singletonList(""), dataSet);
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        menu.findItem(R.id.menu_order_by_size).isVisible = chartDataPresent
+        menu.findItem(R.id.menu_toggle_labels).isVisible = chartDataPresent
+        menu.findItem(R.id.menu_group_other_slice).isVisible = chartDataPresent
+        menu.findItem(R.id.menu_percentage_mode).isVisible = false
+        menu.findItem(R.id.menu_toggle_average_lines).isVisible = false
+        menu.findItem(R.id.menu_group_reports_by).isVisible = false
     }
 
-    /**
-     * Sorts the pie's slices in ascending order
-     */
-    private void bubbleSort() {
-        List<String> labels = mChart.getData().getXVals();
-        List<Entry> values = mChart.getData().getDataSet().getYVals();
-        List<Integer> colors = mChart.getData().getDataSet().getColors();
-        float tmp1;
-        String tmp2;
-        Integer tmp3;
-        for(int i = 0; i < values.size() - 1; i++) {
-            for(int j = 1; j < values.size() - i; j++) {
-                if (values.get(j-1).getVal() > values.get(j).getVal()) {
-                    tmp1 = values.get(j - 1).getVal();
-                    values.get(j - 1).setVal(values.get(j).getVal());
-                    values.get(j).setVal(tmp1);
-
-                    tmp2 = labels.get(j - 1);
-                    labels.set(j - 1, labels.get(j));
-                    labels.set(j, tmp2);
-
-                    tmp3 = colors.get(j - 1);
-                    colors.set(j - 1, colors.get(j));
-                    colors.set(j, tmp3);
-                }
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.isCheckable) item.isChecked = !item.isChecked
+        return when (item.itemId) {
+            R.id.menu_order_by_size -> {
+                bubbleSort()
+                true
             }
-        }
-
-        mChart.notifyDataSetChanged();
-        mChart.highlightValues(null);
-        mChart.invalidate();
-    }
-
-    @Override
-    public void onPrepareOptionsMenu(Menu menu) {
-        menu.findItem(R.id.menu_order_by_size).setVisible(mChartDataPresent);
-        menu.findItem(R.id.menu_toggle_labels).setVisible(mChartDataPresent);
-        menu.findItem(R.id.menu_group_other_slice).setVisible(mChartDataPresent);
-        // hide line/bar chart specific menu items
-        menu.findItem(R.id.menu_percentage_mode).setVisible(false);
-        menu.findItem(R.id.menu_toggle_average_lines).setVisible(false);
-        menu.findItem(R.id.menu_group_reports_by).setVisible(false);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.isCheckable())
-            item.setChecked(!item.isChecked());
-        switch (item.getItemId()) {
-            case R.id.menu_order_by_size: {
-                bubbleSort();
-                return true;
+            R.id.menu_toggle_legend -> {
+                chart.legend.isEnabled = !chart.legend.isEnabled
+                chart.notifyDataSetChanged()
+                chart.invalidate()
+                true
             }
-            case R.id.menu_toggle_legend: {
-                mChart.getLegend().setEnabled(!mChart.getLegend().isEnabled());
-                mChart.notifyDataSetChanged();
-                mChart.invalidate();
-                return true;
+            R.id.menu_toggle_labels -> {
+                chart.data.setDrawValues(!chart.isDrawSliceTextEnabled)
+                chart.setDrawSliceText(!chart.isDrawSliceTextEnabled)
+                chart.invalidate()
+                true
             }
-            case R.id.menu_toggle_labels: {
-                mChart.getData().setDrawValues(!mChart.isDrawSliceTextEnabled());
-                mChart.setDrawSliceText(!mChart.isDrawSliceTextEnabled());
-                mChart.invalidate();
-                return true;
+            R.id.menu_group_other_slice -> {
+                groupSmallerSlices = !groupSmallerSlices
+                refresh()
+                true
             }
-            case R.id.menu_group_other_slice: {
-                mGroupSmallerSlices = !mGroupSmallerSlices;
-                refresh();
-                return true;
-            }
-
-            default:
-                return super.onOptionsItemSelected(item);
+            else -> super.onOptionsItemSelected(item)
         }
     }
 
-    /**
-     * Groups smaller slices. All smaller slices will be combined and displayed as a single "Other".
-     * @param data the pie data which smaller slices will be grouped
-     * @param context Context for retrieving resources
-     * @return a {@code PieData} instance with combined smaller slices
-     */
-    public static PieData groupSmallerSlices(PieData data, Context context) {
-        float otherSlice = 0f;
-        List<Entry> newEntries = new ArrayList<>();
-        List<String> newLabels = new ArrayList<>();
-        List<Integer> newColors = new ArrayList<>();
-        List<Entry> entries = data.getDataSet().getYVals();
-        for (int i = 0; i < entries.size(); i++) {
-            float val = entries.get(i).getVal();
-            if (val / data.getYValueSum() * 100 > GROUPING_SMALLER_SLICES_THRESHOLD) {
-                newEntries.add(new Entry(val, newEntries.size()));
-                newLabels.add(data.getXVals().get(i));
-                newColors.add(data.getDataSet().getColors().get(i));
-            } else {
-                otherSlice += val;
-            }
-        }
-
-        if (otherSlice > 0) {
-            newEntries.add(new Entry(otherSlice, newEntries.size()));
-            newLabels.add(context.getResources().getString(R.string.label_other_slice));
-            newColors.add(Color.LTGRAY);
-        }
-
-        PieDataSet dataSet = new PieDataSet(newEntries, "");
-        dataSet.setSliceSpace(SPACE_BETWEEN_SLICES);
-        dataSet.setColors(newColors);
-        return new PieData(newLabels, dataSet);
+    override fun onValueSelected(entry: Entry?, dataSetIndex: Int, highlight: Highlight?) {
+        entry ?: return
+        val label = chart.data.xVals[entry.xIndex]
+        val value = entry.`val`
+        val percent = value / chart.data.yValueSum * 100
+        mSelectedValueTextView.text = String.format(
+            SELECTED_VALUE_PATTERN,
+            label,
+            value,
+            percent
+        )
     }
 
-    @Override
-    public void onValueSelected(Entry e, int dataSetIndex, Highlight h) {
-        if (e == null) return;
-        String label = mChart.getData().getXVals().get(e.getXIndex());
-        float value = e.getVal();
-        float percent = value / mChart.getData().getYValueSum() * 100;
-        mSelectedValueTextView.setText(String.format(SELECTED_VALUE_PATTERN, label, value, percent));
+    companion object {
+        const val TOTAL_VALUE_LABEL_PATTERN = "%s\n%.2f %s"
+        const val CENTER_TEXT_SIZE = 18f
+        const val SPACE_BETWEEN_SLICES = 2f
+        private const val ANIMATION_DURATION = 1800
+        private const val GROUPING_SMALLER_SLICES_THRESHOLD = 5.0
+
+        /** Combines slices below the percentage threshold into a single “Other” slice. */
+        @JvmStatic
+        fun groupSmallerSlices(data: PieData, context: Context): PieData {
+            var otherSlice = 0f
+            val newEntries = mutableListOf<Entry>()
+            val newLabels = mutableListOf<String>()
+            val newColors = mutableListOf<Int>()
+            val entries = data.dataSet.yVals
+            for (index in entries.indices) {
+                val value = entries[index].`val`
+                if (value / data.yValueSum * 100 > GROUPING_SMALLER_SLICES_THRESHOLD) {
+                    newEntries.add(Entry(value, newEntries.size))
+                    newLabels.add(data.xVals[index])
+                    newColors.add(data.dataSet.colors[index])
+                } else otherSlice += value
+            }
+            if (otherSlice > 0) {
+                newEntries.add(Entry(otherSlice, newEntries.size))
+                newLabels.add(context.resources.getString(R.string.label_other_slice))
+                newColors.add(Color.LTGRAY)
+            }
+            val dataSet = PieDataSet(newEntries, "")
+            dataSet.sliceSpace = SPACE_BETWEEN_SLICES
+            dataSet.colors = newColors
+            return PieData(newLabels, dataSet)
+        }
     }
 }
